@@ -13,7 +13,7 @@ while True:
     try:
         threads = int(input("How many threads should I use (recommended: 4)? "))
         if threads > 32:
-            print("Going above 64 threads will:\nuse so much of your router's bandwidth that it'll slow the whole "
+            print("Going above 32 threads will:\nuse so much of your router's bandwidth that it'll slow the whole "
                   "internet down (and slow the program down)\nslow down your computer "
                   "significantly or crash it.")
         break
