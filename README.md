@@ -13,5 +13,5 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 **Make sure you run python3 with sudo or the scanner will *not* work!**
 
 # Warning
-This program was made for educational purposes only, and is not meant to be used in malicious ways. Do not DDos the IPs or do *anything* malicious with the IPs. The only thing you *SHOULD* do (and is the only thing you're allowed to do with the IPs) is connect to them.
+**This program was made for educational purposes only, and is not meant to be used in malicious ways**. Do not DDos the IPs or do *anything* malicious with the IPs. The only thing you *SHOULD* do (and is the only thing you're allowed to do with the IPs) is connect to them.
 Oh, and **don't use this program for griefing**. Only deadbrains do that.
