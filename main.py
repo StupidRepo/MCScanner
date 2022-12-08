@@ -53,6 +53,8 @@ myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient["MCScanner"]
 mycol = mydb["servers"]
 
+startCount = mycol.estimated_document_count()
+
 A = list(range(1, 0xff))
 B = list(range(1, 0xff))
 
@@ -69,13 +71,12 @@ for a in A:
 def doPrintLoop():
     while True:
         count = mycol.estimated_document_count()
-        start = count - servers_found
         print(f'\rScanning for servers. Found: {servers_found} '
               f'{"server" if servers_found == 1 else "servers" }. '
-              f'Servers in DB at start: {start} '
-              f'{"server" if start == 1 else "servers" }, '
+              f'Servers in DB at start: {startCount} '
+              f'{"server" if startCount == 1 else "servers" }, '
               f'servers in DB now: {count} {"server" if count == 1 else "servers" }. '
-              f'(+{round((count - start) / count * 100, 2)}%)',
+              f'(+{round((count - startCount) / count * 100, 2)}%)',
               end=' ', flush=True)
         time.sleep(.5)
 
