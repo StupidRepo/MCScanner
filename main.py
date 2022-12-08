@@ -10,6 +10,8 @@ servers_found = 0
 
 threads = 4
 
+text = False
+
 print("WARNING! Using or modifying the code in any way to turn it into\n"
       "a DDos program is illegal! This program was made for educational purposes, "
       "and should not be used in malicious ways! This includes:\nLeaking/selling server IPs, DDosing people or"
@@ -23,14 +25,14 @@ print()
 
 while True:
     try:
-        threads = int(input("How many threads should I use (recommended: 4)? "))
+        threads = int(input("How many threads should I use (default & recommended: 4)? "))
         if threads > 32:
             print("Going above 32 threads will:\n- use so much of your router's bandwidth that it'll slow your "
                   "router down (and slow the program down)\n- slow down your computer "
                   "significantly\nOR\n- crash it.")
         break
     except:
-        print("Not a valid number!")
+        print("Using 4 as the default then.")
 
 myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 
@@ -87,5 +89,7 @@ if __name__ == '__main__':
     for ip_range in ip_ranges:
         idk = executor.submit(thread, ip_range)
 
-    executor2 = concurrent.futures.ThreadPoolExecutor(1)
-    executor2.submit(doPrintLoop)
+    if not text:
+        executor2 = concurrent.futures.ThreadPoolExecutor(1)
+        executor2.submit(doPrintLoop)
+        text = True
