@@ -15,7 +15,7 @@ seed = random.randrange(sys.maxsize)
 text = False
 
 print("WARNING! Using or modifying the code in any way to turn it into "
-      "a DDos program is illegal!\n This program was made for educational purposes, "
+      "a DDos program is illegal!\nThis program was made for educational purposes, "
       "and should not be used in malicious ways! This includes:\nLeaking/selling server IPs, DDosing people or"
       "Doxxing people is illegal. Do not use this program with malicious intent!")
 print("I made this program for EDUCATIONAL PURPOSES only. If you try to use this program to DDos someone,"
