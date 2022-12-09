@@ -20,7 +20,9 @@ print("WARNING! Using or modifying the code in any way to turn it into "
 print("I made this program for EDUCATIONAL PURPOSES only. If you try to use this program to DDos someone, "
       "then you are responsible for what happens. Not me!")
 print("Please read the Minecraft terms and the EULA here:"
-      "\nhttps://www.minecraft.net/en-us/terms\nhttps://www.minecraft.net/en-us/eula")
+      "TERMS: https://www.minecraft.net/en-us/terms | EULA: https://www.minecraft.net/en-us/eula")
+print("Using this program normally means: You get servers, connect to them via their IP, and play on them."
+      "(Don't use this program just to find servers to grief, you cheeky little-!)")
 print("Remember, using this program maliciously is illegal! DO NOT DDos people!")
 print("(Oh and also, if you are playing on a multiplayer server whilst running this, "
       "it has a chance to not detect servers and disconnect you from the server!)")
