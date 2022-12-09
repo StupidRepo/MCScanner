@@ -23,7 +23,8 @@ print("I made this program for EDUCATIONAL PURPOSES only. If you try to use this
 print("Make sure to please read the Minecraft terms and the EULA here:"
       "\nhttps://www.minecraft.net/en-us/terms\nhttps://www.minecraft.net/en-us/eula")
 print("Remember, using this program maliciously is illegal! DO NOT DDos people!")
-print("(Oh and also, if you are playing on a multiplayer whilst running this, you will disconnect!")
+print("(Oh and also, if you are playing on a multiplayer server whilst running this, "
+      "it has a chance to not detect servers and disconnect you from the server!)")
 print()
 
 while True:
