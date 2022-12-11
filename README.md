@@ -4,9 +4,13 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 ## Requirements
 * `pymongo` - `pip3 install pymongo`
 * `mcstatus` - `pip3 install mcstatus`
-* `masscan` - Mac/Linux only! (Windows not supported) `pip3 install python-masscan`
+* `masscan` - Mac/Linux only! (Windows not supported)
 * Python 3
 * a MongoDB database 
+
+## Install `masscan`
+Install masscan for macOS using `brew`, or `sudo apt get` for Ubuntu (not sure what it is for other distributions, so that's your job to find out)
+Then install the library for python using `pip3 install python-masscan`
 
 ## Install MongoDB
 ### macOS
