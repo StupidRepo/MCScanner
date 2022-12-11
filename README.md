@@ -9,8 +9,8 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 * a MongoDB database 
 
 ## Install `masscan`
-Install masscan for macOS using `brew`, or `sudo apt get` for Ubuntu (not sure what it is for other distributions, so that's your job to find out)
-Then install the library for python using `pip3 install python-masscan`
+* Install masscan for macOS using `brew`, or `sudo apt get` for Ubuntu
+* Install masscan wrapper for python using `pip3 install python-masscan`
 
 ## Install a MongoDB database
 ### macOS
