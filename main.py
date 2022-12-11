@@ -73,13 +73,21 @@ for a in A:
 def doPrintLoop():
     while True:
         count = mycol.estimated_document_count()
-        print(f'\rScanning for servers. Found: {servers_found} '
-              f'{"server" if servers_found == 1 else "servers" }. '
-              f'Servers in DB at start: {startCount} '
-              f'{"server" if startCount == 1 else "servers" }, '
-              f'servers in DB now: {count} {"server" if count == 1 else "servers" }. '
-              f'(+{round((count - startCount) / count * 100, 2)}%)',
-              end=' ', flush=True)
+        if count == 0:
+            print(f'\rScanning for servers. Found: {servers_found} '
+                  f'{"server" if servers_found == 1 else "servers"}. '
+                  f'Servers in DB at start: {startCount} '
+                  f'{"server" if startCount == 1 else "servers"}, '
+                  f'servers in DB now: {count} {"server" if count == 1 else "servers"}.',
+                  end=' ', flush=True)
+        else:
+            print(f'\rScanning for servers. Found: {servers_found} '
+                  f'{"server" if servers_found == 1 else "servers" }. '
+                  f'Servers in DB at start: {startCount} '
+                  f'{"server" if startCount == 1 else "servers" }, '
+                  f'servers in DB now: {count} {"server" if count == 1 else "servers" }. '
+                  f'(+{round((count - startCount) / count * 100, 2)}%)',
+                  end=' ', flush=True)
         time.sleep(.5)
 
 def thread(ipr):
@@ -95,6 +103,7 @@ def thread(ipr):
             'version': status.version.name,
             'online_players': status.players.online,
             'max_players': status.players.max,
+            'time_scanned': time.time()
         }
         global servers_found
         servers_found += 1
@@ -116,4 +125,4 @@ if __name__ == '__main__':
     if not text:
         text = True
         executor2 = concurrent.futures.ThreadPoolExecutor(1)
-        executor2.submit(doPrintLoop)
+        lol = executor2.submit(doPrintLoop)
