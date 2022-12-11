@@ -12,7 +12,7 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 Install masscan for macOS using `brew`, or `sudo apt get` for Ubuntu (not sure what it is for other distributions, so that's your job to find out)
 Then install the library for python using `pip3 install python-masscan`
 
-## Install MongoDB
+## Install a MongoDB database
 ### macOS
 * Run `xcode-select --install` in Terminal
 (If you do not have `brew` installed, these instructions won't work until you install `brew`. Please scroll down and read 'Install `brew`' then come back up and run these commands)
