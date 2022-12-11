@@ -11,6 +11,7 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 ### Install MongoDB
 ### macOS
 * Run `xcode-select --install` in Terminal
+(If you do not have `brew` installed, these instructions won't work until you install `brew`. Please scroll down and read 'Install `brew`' then come back up and run these commands)
 * Run `brew tap mongodb/brew`
 * Run `brew update`
 * Run `brew install mongodb-community@6.0`
@@ -22,6 +23,7 @@ MongoDB not opening? Check this:
 Linux has multiple distributions, so find the instructions to install MongoDB for your distribution [here](https://www.mongodb.com/docs/manual/administration/install-on-linux/).
 
 ### Install `brew`
+### macOS only! (Although you can run `brew` on Linux)
 * Run `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` in Terminal
 * Follow the setup steps
 * Make sure it's in your PATH
