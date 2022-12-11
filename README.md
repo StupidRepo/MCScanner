@@ -6,7 +6,25 @@ Uses masscan and MongoDB to scan for servers and save them to DB.
 * `mcstatus` - `pip3 install mcstatus`
 * `masscan` - Mac/Linux only! (Windows not supported) `pip3 install python-masscan`
 * Python 3
-* a MongoDB database
+* a MongoDB database 
+
+### Install MongoDB
+### macOS
+* Run `xcode-select --install` in Terminal
+* Run `brew tap mongodb/brew`
+* Run `brew update`
+* Run `brew install mongodb-community@6.0`
+* Run `brew services start mongodb-community@6.0`
+
+MongoDB not opening? Check this:
+<img width="799" alt="ss" src="https://user-images.githubusercontent.com/69256931/206896713-ce3f5270-c4a0-4f62-b1fa-e2015ff6cdd8.png">
+### Linux
+Linux has multiple distributions, so find the instructions to install MongoDB for your distribution [here](https://www.mongodb.com/docs/manual/administration/install-on-linux/).
+
+### Install `brew`
+* Run `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"` in Terminal
+* Follow the setup steps
+* Make sure it's in your PATH
 
 ### Start Scanning
 `sudo python3 main.py`
