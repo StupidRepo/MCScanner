@@ -14,6 +14,8 @@ seed = random.randrange(sys.maxsize)
 
 text = False
 
+rescan = False
+
 print("WARNING! Using or modifying the code in any way to turn it into "
       "a DDos program is illegal!\nThis program was made for educational purposes, "
       "and should not be used in malicious ways! Do not use this program with malicious intent!")
@@ -30,6 +32,17 @@ print()
 
 while True:
     try:
+        thinga = input("Do you want me to update already scanned servers (default: N, options: Y/N)? ")
+        if thinga.lower() == 'y':
+            rescan = True
+        elif thinga.lower() == 'n':
+            rescan = False
+        break
+    except:
+        break
+
+while True:
+    try:
         threads = int(input("How many threads should I use (default & recommended: 4)? "))
         if threads > 32:
             print("Going above 32 threads will:\n- use so much of your router's bandwidth that it'll slow your "
@@ -39,14 +52,15 @@ while True:
     except:
         break
 
-while True:
-    try:
-        seedLocal = input("What seed should the random generator use (default: system time)? ")
-        if seedLocal.strip().__len__() != 0:
-            seed = seedLocal
-        break
-    except:
-        break
+if not rescan:
+    while True:
+        try:
+            seedLocal = input("What seed should the random generator use (default: system time)? ")
+            if seedLocal.strip().__len__() != 0:
+                seed = seedLocal
+            break
+        except:
+            break
 
 rng = random.Random(seed)
 
@@ -63,17 +77,26 @@ B = list(range(1, 0xff))
 rng.shuffle(A)
 rng.shuffle(B)
 
-ip_ranges = []
+if not rescan:
+    ip_ranges = []
+else:
+    ip_ranges = [i['ip'] for i in mycol.find()]
 
-for a in A:
-    for b in B:
-        ip_range = f"{a}.{b}.0.0/16"
-        ip_ranges.append(ip_range)
+if not rescan:
+    for a in A:
+        for b in B:
+            ip_range = f"{a}.{b}.0.0/16"
+            ip_ranges.append(ip_range)
 
 def doPrintLoop():
     while True:
         count = mycol.estimated_document_count()
-        if count == 0:
+        if rescan:
+            print(f'\rUpdating servers. Updated: {servers_found}/{count} '
+                  f'{"server" if servers_found == 1 else "servers"}. '
+                  f'({round(servers_found / count * 100, 2)}%)',
+                  end=' ', flush=True)
+        elif count == 0:
             print(f'\rScanning for servers. Found: {servers_found} '
                   f'{"server" if servers_found == 1 else "servers"}. '
                   f'Servers in DB at start: {startCount} '
@@ -113,8 +136,9 @@ def thread(ipr):
             mycol.insert_one(j)
 
 if __name__ == '__main__':
-    print(f"=====STARTING SCAN=====")
-    print(f'SEED: {seed}')
+    print(f"=====STARTING {'RESCAN' if rescan else 'SCAN'}=====")
+    if not rescan:
+        print(f'SEED: {seed}')
 
     rng.shuffle(ip_ranges)
 
