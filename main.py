@@ -113,6 +113,10 @@ def doPrintLoop():
                   end=' ', flush=True)
         time.sleep(.5)
 
+def update():
+    global servers_found
+    servers_found += 1
+
 def thread(ipr):
     mas = masscan.PortScanner()
     mas.scan(ipr, ports='25565', arguments='--max-rate 105000')
@@ -128,9 +132,11 @@ def thread(ipr):
             'max_players': status.players.max,
             'time_scanned': time.time()
         }
-        global servers_found
-        servers_found += 1
+        if not rescan:
+            update()
         if mycol.count_documents({'ip': server.address.host}, limit=1) != 0:
+            if rescan:
+                update()
             mycol.update_one({'ip': server.address.host}, j)
         else:
             mycol.insert_one(j)
