@@ -92,7 +92,7 @@ def doPrintLoop():
     while True:
         count = mycol.estimated_document_count()
         if rescan:
-            print(f'\rUpdating servers. Updated: {servers_found}/{count} '
+            print(f'\rUpdating servers. Updated: {servers_found}/{startCount} '
                   f'{"server" if servers_found == 1 else "servers"}. '
                   f'({round(servers_found / count * 100, 2)}%)',
                   end=' ', flush=True)
