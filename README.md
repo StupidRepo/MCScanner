@@ -1,5 +1,6 @@
 # MCScanner
 Uses masscan and MongoDB to scan for servers and save them to DB.
+EDIT/NOTE: I will update this soon so that it saves IPs to a text file instead to skip the hassle with a DB. The whole point of the DB was so that I could make a NodeJS program that lists the servers and stuff in charts on a localhost website.
 
 ## Requirements
 * `pymongo` - `pip3 install pymongo`
@@ -38,5 +39,5 @@ Linux has multiple distributions, so find the instructions to install MongoDB fo
 
 # Warning
 ### **This program was made for educational purposes only, and is not meant to be used in malicious ways**. 
-Do not DDos the IPs or do *anything* malicious with the IPs. The only thing you *SHOULD* do (and is the only thing you're allowed to do with the IPs) is connect to them.
-Oh, and **don't use this program for griefing**. Only deadbrains do that.
+Do not DDOS the IPs or do *anything* malicious with the IPs. The only thing this program is supposed to be used for is finding random Minecraft servers and joining them!
+Oh, and **don't use this program for griefing**. Please.
