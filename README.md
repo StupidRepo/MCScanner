@@ -1,5 +1,6 @@
 # MCScanner
 Uses masscan and MongoDB to scan for servers and save them to DB.
+
 EDIT/NOTE: I will update this soon so that it saves IPs to a text file instead to skip the hassle with a DB. The whole point of the DB was so that I could make a NodeJS program that lists the servers and stuff in charts on a localhost website.
 
 ## Requirements
