@@ -22,7 +22,7 @@ public class MCScanner {
 
     String filename = "output.txt";
 
-    float version = 1.07f;
+    float version = 1.08f;
 
     ArrayList<Thread> threadList = new ArrayList<Thread>();
 
@@ -34,12 +34,12 @@ public class MCScanner {
     frame.setSize(300, 100);
     frame.setLayout(new BorderLayout());
 
-    JProgressBar progressBar = new JProgressBar(0, (maxRange - minimumRange + 1) * 256 * 256);
+    JProgressBar progressBar = new JProgressBar(0, (maxRange - minimumRange + 1) * 256 * 256 * 256);
     progressBar.setStringPainted(true);
 
     frame.add(progressBar, "Center");
 
-    JLabel scannedLabel = new JLabel("Scanned: 0/" + (maxRange - minimumRange + 1) * 256 * 256);
+    JLabel scannedLabel = new JLabel("Scanned: 0/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
     scannedLabel.setHorizontalAlignment(0);
     frame.add(scannedLabel, "South");
     frame.setVisible(true);
@@ -48,28 +48,31 @@ public class MCScanner {
     for(int i = minimumRange; i <= maxRange; ++i) {
         for(int j = 0; j <= 255; ++j) {
             for(int k = 0; k <= 255; ++k) {
-                String ip = "" + i + "." + j + "." + k + ".0";
+                    for (int l = 0; l <= 255; ++l) {
+                    // String ip = "" + i + "." + j + "." + k + ".0";
+                    String ip = i + "." + j + "." + k + "." + l;
 
-                Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, filename));
-                threadList.add(scanThread);
-                scanThread.start();
+                    Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, filename));
+                    threadList.add(scanThread);
+                    scanThread.start();
 
-                if (threadList.size() >= threads) {
-                    Iterator iterator = threadList.iterator();
+                    if (threadList.size() >= threads) {
+                        Iterator iterator = threadList.iterator();
 
-                    while(iterator.hasNext()) {
-                        Thread nextThread = (Thread)iterator.next();
+                        while(iterator.hasNext()) {
+                            Thread nextThread = (Thread)iterator.next();
 
-                        try {
-                            nextThread.join();
-                            ++scanned;
-                            progressBar.setValue(scanned);
-                            scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256);
-                        } catch (InterruptedException timeout2) {
-                            // eh
-                        }
-                }
-                threadList.clear();
+                            try {
+                                nextThread.join();
+                                ++scanned;
+                                progressBar.setValue(scanned);
+                                scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
+                            } catch (InterruptedException timeout2) {
+                                // eh
+                            }
+                    }
+                    threadList.clear();
+                    }
                 }
             }
         }
@@ -84,7 +87,7 @@ public class MCScanner {
             nextThreadAgain.join();
             ++scanned;
             progressBar.setValue(scanned);
-            scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256);
+            scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
         } catch (InterruptedException timeout1) {
             // well
         }
