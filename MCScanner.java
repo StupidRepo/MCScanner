@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JProgressBar;
+// import javax.swing.JProgressBar;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,8 @@ public class MCScanner {
     int maxRange = 255;
     int port = 25565;
 
+    double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
+
     String filename = "output.txt";
 
     float version = 1.08f;
@@ -34,16 +36,20 @@ public class MCScanner {
     frame.setSize(300, 100);
     frame.setLayout(new BorderLayout());
 
-    JProgressBar progressBar = new JProgressBar(0, (maxRange - minimumRange + 1) * 256 * 256 * 256);
-    progressBar.setStringPainted(true);
+    // JProgressBar progressBar = new JProgressBar(0, (int)progressThing);
+    // progressBar.setStringPainted(true);
 
-    frame.add(progressBar, "Center");
+    // frame.add(progressBar, "Center");
 
-    JLabel scannedLabel = new JLabel("Scanned: 0/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
+    JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing*256);
     scannedLabel.setHorizontalAlignment(0);
-    frame.add(scannedLabel, "South");
+
+    // frame.add(scannedLabel, "South");
+
+    frame.add(scannedLabel, "Center");
     frame.setVisible(true);
-    int scanned = 0;
+
+    long scanned = 0;
 
     for(int i = minimumRange; i <= maxRange; ++i) {
         for(int j = 0; j <= 255; ++j) {
@@ -65,8 +71,8 @@ public class MCScanner {
                             try {
                                 nextThread.join();
                                 ++scanned;
-                                progressBar.setValue(scanned);
-                                scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
+                                // progressBar.setValue(scanned);
+                                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + Math.round((scanned / progressThing*256)*100)/100 + "%)");
                             } catch (InterruptedException timeout2) {
                                 // eh
                             }
@@ -86,8 +92,8 @@ public class MCScanner {
         try {
             nextThreadAgain.join();
             ++scanned;
-            progressBar.setValue(scanned);
-            scannedLabel.setText("Scanned: " + scanned + "/" + (maxRange - minimumRange + 1) * 256 * 256 * 256);
+            // progressBar.setValue(scanned);
+            scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256);
         } catch (InterruptedException timeout1) {
             // well
         }
