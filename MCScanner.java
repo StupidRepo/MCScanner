@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.charset.Charset;
 
 public class MCScanner {
    public static void main(String[] var0) {
@@ -66,7 +67,7 @@ public class MCScanner {
                         scanThread.start();
 
                         if (threadList.size() >= threads) {
-                            Iterator iterator = threadList.iterator();
+                            Iterator<Thread> iterator = threadList.iterator();
 
                             while(iterator.hasNext()) {
                                 Thread nextThread = (Thread)iterator.next();
@@ -87,7 +88,7 @@ public class MCScanner {
             }
         }
 
-        Iterator yetAnotherIterator = threadList.iterator();
+        Iterator<Thread> yetAnotherIterator = threadList.iterator();
 
         while(yetAnotherIterator.hasNext()) {
             Thread nextThreadAgain = (Thread)yetAnotherIterator.next();
@@ -127,7 +128,7 @@ class ScannerThread implements Runnable {
             socket.connect(new InetSocketAddress("192.168.0.14", port), timeout);
 
             InputStream inputStream = socket.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream,Charset.forName("UTF-16BE"));
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-16BE"));
 
             OutputStream outp = socket.getOutputStream();
                         
@@ -175,11 +176,13 @@ class ScannerThread implements Runnable {
 
                     FileWriter writer = new FileWriter(filename, true);
                     writer.write(String.format("---\nIP: %s\nProtocol Version: %s\nGame Version: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, Integer.parseInt(data[1]), data[2], data[3], data[4], data[5]));
+                    writer.close();
                 } else {
                     String[] data = string.split("§");
 
                     FileWriter writer = new FileWriter(filename, true);
                     writer.write(String.format("---\nIP: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, data[0], data[1], data[2]));
+                    writer.close();
                 }
             }
 
