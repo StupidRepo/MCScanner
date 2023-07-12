@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-
-import java.io.File;
 // import javax.swing.JProgressBar;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,7 +16,7 @@ import java.nio.charset.Charset;
 
 public class MCScanner {
    public static void main(String[] var0) {
-    int threads = 1024;
+    int threads = 4096;
     int timeout = 1000;
     int minimumRange = 1;
     int maxRange = 255;
