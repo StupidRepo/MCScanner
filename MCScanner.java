@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+
+import java.io.File;
 // import javax.swing.JProgressBar;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -55,95 +58,135 @@ public class MCScanner {
         for(int j = 0; j <= 255; ++j) {
             for(int k = 0; k <= 255; ++k) {
                     for (int l = 0; l <= 255; ++l) {
-                    // String ip = "" + i + "." + j + "." + k + ".0";
-                    String ip = i + "." + j + "." + k + "." + l;
+                        // String ip = "" + i + "." + j + "." + k + ".0";
+                        String ip = i + "." + j + "." + k + "." + l;
 
-                    Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, filename));
-                    threadList.add(scanThread);
-                    scanThread.start();
+                        Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, filename));
+                        threadList.add(scanThread);
+                        scanThread.start();
 
-                    if (threadList.size() >= threads) {
-                        Iterator iterator = threadList.iterator();
+                        if (threadList.size() >= threads) {
+                            Iterator iterator = threadList.iterator();
 
-                        while(iterator.hasNext()) {
-                            Thread nextThread = (Thread)iterator.next();
+                            while(iterator.hasNext()) {
+                                Thread nextThread = (Thread)iterator.next();
 
-                            try {
-                                nextThread.join();
-                                ++scanned;
-                                // progressBar.setValue(scanned);
-                                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + Math.round((scanned / progressThing*256)*100)/100 + "%)");
-                            } catch (InterruptedException timeout2) {
-                                // eh
+                                try {
+                                    nextThread.join();
+                                    ++scanned;
+                                    // progressBar.setValue(scanned);
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + Math.round((scanned / progressThing*256)*100)/100 + "%)");
+                                } catch (InterruptedException timeout2) {
+                                    // eh
+                                }
                             }
-                    }
-                    threadList.clear();
+                            threadList.clear();
+                        }
                     }
                 }
             }
         }
-    }
 
-    Iterator yetAnotherIterator = threadList.iterator();
+        Iterator yetAnotherIterator = threadList.iterator();
 
-    while(yetAnotherIterator.hasNext()) {
-        Thread nextThreadAgain = (Thread)yetAnotherIterator.next();
+        while(yetAnotherIterator.hasNext()) {
+            Thread nextThreadAgain = (Thread)yetAnotherIterator.next();
 
-        try {
-            nextThreadAgain.join();
-            ++scanned;
-            // progressBar.setValue(scanned);
-            scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256);
-        } catch (InterruptedException timeout1) {
-            // well
+            try {
+                nextThreadAgain.join();
+                ++scanned;
+                // progressBar.setValue(scanned);
+                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256);
+            } catch (InterruptedException timeout1) {
+                // well
+            }
         }
-    }
 
-    frame.setVisible(false);
-    frame.dispatchEvent(new WindowEvent(frame, 201));
-    System.out.println("Scan completed!");
+        frame.setVisible(false);
+        frame.dispatchEvent(new WindowEvent(frame, 201));
+        System.out.println("Scan completed!");
     }
 }
 
 class ScannerThread implements Runnable {
-   private String ip;
-   private int port;
-   private int timeout;
-   private String filename;
+    private String ip;
+    private int port;
+    private int timeout;
+    private String filename;
 
-   public ScannerThread(String ip, int port, int timeout, String filename) {
-      this.ip = ip;
-      this.port = port;
-      this.timeout = timeout;
-      this.filename = filename;
-   }
+    public ScannerThread(String ip, int port, int timeout, String filename) {
+        this.ip = ip;
+        this.port = port;
+        this.timeout = timeout;
+        this.filename = filename;
+    }
 
-   public void run() {
+    public void run() {
         try {
             Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
+            socket.connect(new InetSocketAddress("192.168.0.14", port), timeout);
 
-            InputStream inp = socket.getInputStream();
+            InputStream inputStream = socket.getInputStream();
+            InputStreamReader inputStreamReader = new InputStreamReader(inputStream,Charset.forName("UTF-16BE"));
+
             OutputStream outp = socket.getOutputStream();
-            
-            outp.write(new byte[]{-2, 1});
+                        
+            outp.write(new byte[]{(byte)0xFE, (byte)0x01});
 
-            socket.setSoTimeout(this.timeout);
+            socket.setSoTimeout(timeout);
 
-            byte[] bytesVar = new byte[256];
-            int bytesResp = inp.read(bytesVar);
+            int packetId = inputStream.read();
 
-            if (bytesResp > 0) {
-                System.out.println("Found a server!");
-                String var6 = this.ip + "\n";
-                FileWriter var7 = new FileWriter(this.filename, true);
-                var7.write(var6);
-                var7.close();
+			if (packetId == -1) {
+                socket.close();
+				throw new IOException("Premature end of stream.");
+			}
+
+			if (packetId != 0xFF) {
+                socket.close();
+				throw new IOException("Invalid packet ID (" + packetId + ").");
+			}
+
+			int length = inputStreamReader.read();
+
+			if (length == -1) {
+                socket.close();
+				throw new IOException("Premature end of stream.");
+			}
+
+			if (length == 0) {
+                socket.close();
+				throw new IOException("Invalid string length.");
+			}
+
+			char[] chars = new char[length];
+
+			if (inputStreamReader.read(chars,0,length) != length) {
+                socket.close();
+				throw new IOException("Premature end of stream.");
+			}
+
+			String string = new String(chars);
+
+            if (length > 0) {
+                // System.out.println("Server online!");
+                if (string.startsWith("§")) {
+                    String[] data = string.split("\0");
+
+                    FileWriter writer = new FileWriter(filename, true);
+                    writer.write(String.format("---\nIP: %s\nProtocol Version: %s\nGame Version: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, Integer.parseInt(data[1]), data[2], data[3], data[4], data[5]));
+                } else {
+                    String[] data = string.split("§");
+
+                    FileWriter writer = new FileWriter(filename, true);
+                    writer.write(String.format("---\nIP: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, data[0], data[1], data[2]));
+                }
             }
 
             socket.close();
         } catch (IOException var8) {
-            // well
+            // System.out.println("Server offline/invalid response!");
+            // pass!
         }
     }
 }
