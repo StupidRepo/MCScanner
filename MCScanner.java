@@ -125,7 +125,7 @@ class ScannerThread implements Runnable {
     public void run() {
         try {
             Socket socket = new Socket();
-            socket.connect(new InetSocketAddress("192.168.0.14", port), timeout);
+            socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
 
             InputStream inputStream = socket.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, Charset.forName("UTF-16BE"));
@@ -134,7 +134,7 @@ class ScannerThread implements Runnable {
                         
             outp.write(new byte[]{(byte)0xFE, (byte)0x01});
 
-            socket.setSoTimeout(timeout);
+            socket.setSoTimeout(this.timeout);
 
             int packetId = inputStream.read();
 
@@ -175,7 +175,7 @@ class ScannerThread implements Runnable {
                     String[] data = string.split("\0");
 
                     FileWriter writer = new FileWriter(filename, true);
-                    writer.write(String.format("---\nIP: %s\nProtocol Version: %s\nGame Version: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, Integer.parseInt(data[1]), data[2], data[3], data[4], data[5]));
+                    writer.write(String.format("\nIP: %s\nProtocol Version: %s\nGame Version: %s\nMOTD: %s\nPlayers: %s/%s\n---\n", ip, Integer.parseInt(data[1]), data[2], data[3], data[4], data[5]));
                     writer.close();
                 } else {
                     String[] data = string.split("§");
