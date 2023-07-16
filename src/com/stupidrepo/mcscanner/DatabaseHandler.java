@@ -2,6 +2,7 @@ package com.stupidrepo.mcscanner;
 
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
@@ -9,19 +10,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DatabaseHandler {
+    public MongoClient mainMongoClient;
     public MongoDatabase mainDatabase;
+    private MongoCollection<Document> mainCollection;
+
     private final Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
     public DatabaseHandler(String uri) {
-        try (MongoClient mongoClient = MongoClients.create(uri)) {
-            mainDatabase = mongoClient.getDatabase("MCScanner");
+        try {
+            mainMongoClient = MongoClients.create(uri);
+            mainDatabase = mainMongoClient.getDatabase("MCScanner");
+            mainCollection = mainDatabase.getCollection("servers");
             logger.log(Level.INFO, "Connected to database: '" + mainDatabase.getName() + "'");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to connect to database!");
         }
     }
 
     public void writeDetailsToDB(String ip, String version, String motd, int maxPlayers) {
         try {
-            mainDatabase.getCollection("servers")
+            mainCollection
                     .insertOne(
                             new Document("ip", ip)
                                     .append("version", version)
@@ -36,7 +44,7 @@ public class DatabaseHandler {
 
     public void writeDetailsToDB(String ip, String motd, int maxPlayers) {
         try {
-            mainDatabase.getCollection("servers")
+            mainCollection
                     .insertOne(
                             new Document("ip", ip)
                                     .append("motd", motd)
@@ -49,7 +57,12 @@ public class DatabaseHandler {
     }
 
     public boolean isIPInDB(String ip) {
-        Document myDoc = mainDatabase.getCollection("servers").find(new Document("ip", ip)).first();
-        return myDoc != null;
+        try {
+            Document myDoc = mainCollection.find(new Document("ip", ip)).first();
+            return myDoc != null;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to check if " + ip + " is in database.");
+            return false;
+        }
     }
 }

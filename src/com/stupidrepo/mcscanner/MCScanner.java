@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
@@ -23,11 +24,10 @@ public class MCScanner {
         // TODO: Optimize all of this code.
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.11f;
+        float version = 1.12f;
 
-        DatabaseHandler databaseHandler = new DatabaseHandler("mongodb://localhost:27017");
+        AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
-        // Make a window with an input box to input amount of threads
         JFrame threadFrame = new JFrame("MCScanner v" + version);
         threadFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         threadFrame.setSize(500, 125);
@@ -77,6 +77,51 @@ public class MCScanner {
             }
         }
 
+        JFrame mongoFrame = new JFrame("MCScanner v" + version);
+        mongoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        mongoFrame.setSize(500, 125);
+        mongoFrame.setLayout(new BorderLayout());
+
+        JLabel mongoLabel = new JLabel("MongoDB URI (default is mongodb://localhost:27017):");
+        mongoLabel.setHorizontalAlignment(0);
+
+        mongoFrame.add(mongoLabel, "North");
+
+        JTextField mongoField = new JTextField("mongodb://localhost:27017");
+        mongoField.setHorizontalAlignment(0);
+
+        mongoFrame.add(mongoField, "Center");
+
+        JButton mongoButton = new JButton("OK");
+        mongoFrame.add(mongoButton, "East");
+
+        JButton mQuitButton = new JButton("Quit");
+        mongoFrame.add(mQuitButton, "South");
+
+        mongoButton.addActionListener(e -> {
+            uri.set(mongoField.getText());
+            mongoFrame.setVisible(false);
+            mongoFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
+        });
+
+        mQuitButton.addActionListener(e -> {
+            mongoFrame.setVisible(false);
+            mongoFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
+            System.exit(0);
+        });
+
+        mongoFrame.setVisible(true);
+
+        while(mongoFrame.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        DatabaseHandler databaseHandler = new DatabaseHandler(uri.get());
+
         logger.log(Level.INFO, "Scanning IPs...");
 
         JFrame frame = new JFrame("MCScanner v" + version);
@@ -100,7 +145,6 @@ public class MCScanner {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
                     for (int l = 0; l <= 255; ++l) {
-                        // String ip = "" + i + "." + j + "." + k + ".0";
                         String ip = i + "." + j + "." + k + "." + l;
 
                         Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
@@ -203,7 +247,6 @@ class ScannerThread implements Runnable {
             }
 
             if(dbHandler.isIPInDB(ip)) {
-                System.out.println("IP is in database, skipping...");
                 socket.close();
                 return;
             }

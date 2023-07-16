@@ -1,16 +1,11 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
 ## Added
-* You can now configure how many threads you use upon starting MCScanner.
-<img alt="Image of thread menu" height="75%" src="images/1_11-threadmenu.png" width="75%"/>
+* A menu that allows for configuring the MongoDB URI.
+<img alt="MongoDB menu screen thingy" height="50%" src="images/1_12-mongomenu.png" width="50%"/>
 
 ## Modified
-* Updated `README.md`
-  * Includes link to the `CHANGELOG.md` file.
-  * Includes notice that says macOS users can just double-click on the `.jar` file.
-  * Updated the requirements.
-  * Added link to latest `.jar` file.
-  * Fixed spacing issues.
+* Fixed an IllegalStateException (`IllegalStateException: state should be: open`) stopping servers from being saved to the database.
 
 ## Removed
-Nothing has been removed.
+* Removed a few unnecessary comments and debug outputs.
