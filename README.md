@@ -25,7 +25,7 @@ Now re-made in Java, and not Python!
 ## Changelogs
 All notable changes to this project will be documented in [`CHANGELOG.md`][changes].
 
-> ## Warning
+## Warning
 > **Warning**<br>
 > This program was made for **educational purposes only**, and is **not meant to be used in malicious ways**. 
 > **Do not DDOS the IPs** or do *anything* malicious with the IPs.
