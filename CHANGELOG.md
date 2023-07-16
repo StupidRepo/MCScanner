@@ -10,6 +10,7 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
   * Includes notice that says macOS users can just double-click on the `.jar` file.
   * Updated the requirements.
   * Added link to latest `.jar` file.
+  * Fixed spacing issues.
 
 ## Removed
 Nothing has been removed.
