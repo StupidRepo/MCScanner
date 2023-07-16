@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,13 +27,11 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.09f;
-
-        logger.log(java.util.logging.Level.INFO, "MCScanner v" + version + " by StupidRepo.");
+        float version = 1.10f;
 
         DatabaseHandler databaseHandler = new DatabaseHandler("mongodb://localhost:27017");
 
-        logger.log(java.util.logging.Level.INFO, "Connected to database. Scanning IPs...");
+        logger.log(Level.INFO, "Scanning IPs...");
 
         JFrame frame = new JFrame("MCScanner v" + version);
         frame.setDefaultCloseOperation(3);
@@ -99,7 +98,7 @@ public class MCScanner {
 
         frame.setVisible(false);
         frame.dispatchEvent(new WindowEvent(frame, 201));
-        System.out.println("Scan completed!");
+        logger.log(Level.INFO, "Scan completed!");
     }
 }
 
@@ -161,6 +160,12 @@ class ScannerThread implements Runnable {
             if (inputStreamReader.read(chars, 0, length) != length) {
                 socket.close();
                 throw new IOException("Premature end of stream.");
+            }
+
+            if(dbHandler.isIPInDB(ip)) {
+                System.out.println("IP is in database, skipping...");
+                socket.close();
+                return;
             }
 
             String string = new String(chars);
