@@ -3,14 +3,13 @@ Now re-made in Java, and not Python!
 
 ## Requirements
 * [`Java 17`][adopt17]
+* MongoDB database (required for storing IPs)
+* Stable internet connection
 
 ## Setup
-### macOS + Linux
-1. `cd` into the path to MCScanner (e.g. `cd ~/Desktop/MCScanner`)
-2. Run `javac MCScanner.java`
-3. Now, every time you want to scan for servers, run `java MCScanner` in the MCScanner directory.
-### Windows
-1. Submit a pull request with instructions for how to do it on Windows!
+### macOS + Linux + Windows
+1. Download the latest `.JAR` file from the [releases page](https://github.com/StupidRepo/MCScanner/releases).
+2. Run the `.JAR` file with `java -jar /path/to/MCScanner.jar` from Command Prompt or Terminal.
 
 # Warning
 ### **This program was made for educational purposes only, and is not meant to be used in malicious ways**. 

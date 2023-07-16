@@ -1,0 +1,26 @@
+// add java and application plugins
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'com.stupidrepo'
+//version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+mainClassName = 'com.stupidrepo.mcscanner.MCScanner'
+application {
+    mainClassName = 'com.stupidrepo.mcscanner.MCScanner'
+}
+dependencies {
+    implementation 'org.mongodb:mongodb-driver-sync:4.10.2'
+}

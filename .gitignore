@@ -1,3 +1,11 @@
+# Files
 *.class
 *.DS_Store
 *.txt
+gradlew
+gradlew.bat
+
+# Directories
+.gradle
+.idea
+build
