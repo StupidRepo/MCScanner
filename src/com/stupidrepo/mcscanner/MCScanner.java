@@ -123,9 +123,9 @@ class ScannerThread implements Runnable {
             InputStream inputStream = socket.getInputStream();
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_16BE);
 
-            OutputStream outp = socket.getOutputStream();
+            OutputStream outputStream = socket.getOutputStream();
 
-            outp.write(new byte[] {
+            outputStream.write(new byte[] {
                     (byte) 0xFE, (byte) 0x01
             });
 
