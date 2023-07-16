@@ -5,18 +5,16 @@ import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
-import javax.xml.crypto.Data;
 
 public class MCScanner {
     public static void main(String[] var0) {
-        int threads = 1024;
+        AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
         int minimumRange = 1;
         int maxRange = 255;
@@ -25,9 +23,59 @@ public class MCScanner {
         // TODO: Optimize all of this code.
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.10f;
+        float version = 1.11f;
 
         DatabaseHandler databaseHandler = new DatabaseHandler("mongodb://localhost:27017");
+
+        // Make a window with an input box to input amount of threads
+        JFrame threadFrame = new JFrame("MCScanner v" + version);
+        threadFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        threadFrame.setSize(500, 125);
+        threadFrame.setLayout(new BorderLayout());
+
+        JLabel threadLabel = new JLabel("Threads to use (default is 1024, recommended is 1024-2048):");
+        threadLabel.setHorizontalAlignment(0);
+
+        threadFrame.add(threadLabel, "North");
+
+        JTextField threadField = new JTextField("1024");
+        threadField.setHorizontalAlignment(0);
+
+        threadFrame.add(threadField, "Center");
+
+        JButton threadButton = new JButton("OK");
+        threadFrame.add(threadButton, "East");
+
+        JButton quitButton = new JButton("Quit");
+        threadFrame.add(quitButton, "South");
+
+        threadButton.addActionListener(e -> {
+            try {
+                Integer.parseInt(threadField.getText());
+            } catch (NumberFormatException exception) {
+                JOptionPane.showMessageDialog(null, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            threads.set(Integer.parseInt(threadField.getText()));
+            threadFrame.setVisible(false);
+            threadFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
+        });
+
+        quitButton.addActionListener(e -> {
+            threadFrame.setVisible(false);
+            threadFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
+            System.exit(0);
+        });
+
+        threadFrame.setVisible(true);
+
+        while(threadFrame.isVisible()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         logger.log(Level.INFO, "Scanning IPs...");
 
@@ -59,7 +107,7 @@ public class MCScanner {
                         threadList.add(scanThread);
                         scanThread.start();
 
-                        if (threadList.size() >= threads) {
+                        if (threadList.size() >= threads.get()) {
                             for (Thread nextThread: threadList) {
                                 try {
                                     nextThread.join();
