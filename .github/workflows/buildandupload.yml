@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: ./gradlew build
+        run: pwd && ./gradlew build
 
       - name: Make Release
         uses: actions/create-release@v1
