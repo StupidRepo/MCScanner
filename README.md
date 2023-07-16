@@ -26,8 +26,9 @@ Now re-made in Java, and not Python!
 All notable changes to this project will be documented in [`CHANGELOG.md`][changes].
 
 > **Warning**<br>
-> This program was made for educational purposes only, and is not meant to be used in malicious ways. 
-> Do not DDOS the IPs or do *anything* malicious with the IPs. The only thing this program is supposed to be used for is finding random Minecraft servers and joining them!
+> This program was made for **educational purposes only**, and is **not meant to be used in malicious ways**. 
+> **Do not DDOS the IPs** or do *anything* malicious with the IPs.
+> The only thing this program is supposed to be used for is finding random Minecraft servers and joining them, to have fun!
 
 Oh, and **don't use this program for griefing**. Please.
 
