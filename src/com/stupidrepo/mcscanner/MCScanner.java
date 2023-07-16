@@ -11,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.*;
 import javax.xml.crypto.Data;
 
 public class MCScanner {
@@ -23,8 +22,7 @@ public class MCScanner {
         int maxRange = 255;
         int port = 25565;
 
-        // TODO: Optimize all this code.
-
+        // TODO: Optimize all of this code.
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
         float version = 1.10f;
@@ -34,14 +32,9 @@ public class MCScanner {
         logger.log(Level.INFO, "Scanning IPs...");
 
         JFrame frame = new JFrame("MCScanner v" + version);
-        frame.setDefaultCloseOperation(3);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
-
-        // JProgressBar progressBar = new JProgressBar(0, (int)progressThing);
-        // progressBar.setStringPainted(true);
-
-        // frame.add(progressBar, "Center");
 
         double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
@@ -49,13 +42,12 @@ public class MCScanner {
         JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
         scannedLabel.setHorizontalAlignment(0);
 
-        // frame.add(scannedLabel, "South");
-
         frame.add(scannedLabel, "Center");
         frame.setVisible(true);
 
         long scanned = 0;
 
+        // TODO: Make this whole thing more efficient, and less ugly.
         for (int i = minimumRange; i <= maxRange; ++i) {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
