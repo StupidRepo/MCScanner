@@ -8,7 +8,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build
-        run: ls ../ && ls ./ && ebhqwbhewqh
+        run: ls ../ && ls ./ && ./gradlew build
 
       - name: Make Release
         uses: actions/create-release@v1
