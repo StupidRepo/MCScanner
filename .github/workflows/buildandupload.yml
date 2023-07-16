@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Build
-        run: ls -l && ebhqwbhewqh
+        run: ls ../ && ls ./ && ebhqwbhewqh
 
       - name: Make Release
         uses: actions/create-release@v1
