@@ -60,7 +60,7 @@ public class MCScanner {
 
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
 
-        JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing);
+        JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
@@ -74,9 +74,8 @@ public class MCScanner {
         for (int i = minimumRange; i <= maxRange; ++i) {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
-                    // for (int l = 0; l <= 255; ++l) {
-                        String ip = i + "." + j + "." + k + ".0";
-        
+                    for (int l = 0; l <= 255; ++l) {
+                        String ip = i + "." + j + "." + k + "." + l;
                         Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
                         threadList.add(scannerThread);
                         executor.execute(scannerThread);
@@ -86,14 +85,14 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing + " (" + Math.round((scanned / progressThing) * 100) / 100 + "%)");
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + (scanned / (progressThing*256)) * 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // eh
                                 }
                             }
                             threadList.clear();
                         }
-                    // }
+                    }
                 }
             }
         }
