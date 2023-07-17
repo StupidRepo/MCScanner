@@ -1,12 +1,10 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
 ## Added
-Nothing has been added.
+* `PopupHandler` - stops me from duplicating a bunch of code just for settings.
 
 ## Modified
-* Fixed the percentage going over 100%
-* Changed thread code a little bit
-* Added a "Hits" counter for successfully scanned servers
+* Thread handling has been modified to be (potentially) faster and use less lines of code.
 
 ## Removed
-Nothing has been removed.
+* Hits feature

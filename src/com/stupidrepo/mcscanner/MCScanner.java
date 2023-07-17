@@ -7,6 +7,9 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -14,7 +17,7 @@ import java.util.logging.Logger;
 import javax.swing.*;
 
 public class MCScanner {
-    public static void main(String[] var0) {
+    public static void main(String[] var0) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
         AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
         int minimumRange = 1;
@@ -28,97 +31,19 @@ public class MCScanner {
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
-        JFrame threadFrame = new JFrame("MCScanner v" + version);
-        threadFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        threadFrame.setSize(500, 125);
-        threadFrame.setLayout(new BorderLayout());
+        PopupHandler threadsPopup = new PopupHandler("How many threads would you like to use?", "1024", "OK");
+        threadsPopup.showAndWait();
 
-        JLabel threadLabel = new JLabel("Threads to use (default is 1024, recommended is 1024-2048):");
-        threadLabel.setHorizontalAlignment(0);
-
-        threadFrame.add(threadLabel, "North");
-
-        JTextField threadField = new JTextField("1024");
-        threadField.setHorizontalAlignment(0);
-
-        threadFrame.add(threadField, "Center");
-
-        JButton threadButton = new JButton("OK");
-        threadFrame.add(threadButton, "East");
-
-        JButton quitButton = new JButton("Quit");
-        threadFrame.add(quitButton, "South");
-
-        threadButton.addActionListener(e -> {
-            try {
-                Integer.parseInt(threadField.getText());
-            } catch (NumberFormatException exception) {
-                JOptionPane.showMessageDialog(null, "Invalid number.", "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            threads.set(Integer.parseInt(threadField.getText()));
-            threadFrame.setVisible(false);
-            threadFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
-        });
-
-        quitButton.addActionListener(e -> {
-            threadFrame.setVisible(false);
-            threadFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
-            System.exit(0);
-        });
-
-        threadFrame.setVisible(true);
-
-        while(threadFrame.isVisible()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        try {
+            threads.set(Integer.parseInt(threadsPopup.responseText));
+        } catch (NumberFormatException e) {
+            logger.log(Level.SEVERE, "Invalid thread count.");
         }
 
-        JFrame mongoFrame = new JFrame("MCScanner v" + version);
-        mongoFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        mongoFrame.setSize(500, 125);
-        mongoFrame.setLayout(new BorderLayout());
+        PopupHandler mongoDBURIPopup = new PopupHandler("Enter the URI to the MongoDB database:", "mongodb://localhost:27017", "Done");
+        mongoDBURIPopup.showAndWait();
 
-        JLabel mongoLabel = new JLabel("MongoDB URI (default is mongodb://localhost:27017):");
-        mongoLabel.setHorizontalAlignment(0);
-
-        mongoFrame.add(mongoLabel, "North");
-
-        JTextField mongoField = new JTextField("mongodb://localhost:27017");
-        mongoField.setHorizontalAlignment(0);
-
-        mongoFrame.add(mongoField, "Center");
-
-        JButton mongoButton = new JButton("OK");
-        mongoFrame.add(mongoButton, "East");
-
-        JButton mQuitButton = new JButton("Quit");
-        mongoFrame.add(mQuitButton, "South");
-
-        mongoButton.addActionListener(e -> {
-            uri.set(mongoField.getText());
-            mongoFrame.setVisible(false);
-            mongoFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
-        });
-
-        mQuitButton.addActionListener(e -> {
-            mongoFrame.setVisible(false);
-            mongoFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
-            System.exit(0);
-        });
-
-        mongoFrame.setVisible(true);
-
-        while(mongoFrame.isVisible()) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        uri.set(mongoDBURIPopup.responseText);
 
         DatabaseHandler databaseHandler = new DatabaseHandler(uri.get());
 
@@ -130,6 +55,7 @@ public class MCScanner {
         frame.setLayout(new BorderLayout());
 
         double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
+
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
 
         JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
@@ -138,37 +64,26 @@ public class MCScanner {
         frame.add(scannedLabel, "Center");
 
         long scanned = 0;
-        long hits = 0;
-
-        JLabel hitsLabel = new JLabel("Hits: 0/0");
-        hitsLabel.setHorizontalAlignment(0);
-
-        frame.add(hitsLabel, "South");
 
         frame.setVisible(true);
 
-        // TODO: Make this whole thing more efficient, and less ugly.
+        ExecutorService executor = Executors.newFixedThreadPool(threads.get());
+
         for (int i = minimumRange; i <= maxRange; ++i) {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
                     for (int l = 0; l <= 255; ++l) {
                         String ip = i + "." + j + "." + k + "." + l;
-
-                        ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
-                        Thread scanThread = new Thread(scannerThread);
-                        threadList.add(scanThread);
-                        scanThread.start();
-
+        
+                        Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
+                        threadList.add(scannerThread);
+                        executor.execute(scannerThread);
+        
                         if (threadList.size() >= threads.get()) {
                             for (Thread nextThread: threadList) {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    if(scannerThread.didHit) {
-                                        ++hits;
-                                    }
-                                    // progressBar.setValue(scanned);
-                                    hitsLabel.setText("Hits: " + hits + "/" + scanned);
                                     scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // eh
@@ -181,16 +96,11 @@ public class MCScanner {
             }
         }
 
-        for (Thread nextThreadAgain: threadList) {
-            try {
-                nextThreadAgain.join();
-                ++scanned;
-                // progressBar.setValue(scanned);
-                hitsLabel.setText("Hits: " + hits + "/" + scanned);
-                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
-            } catch (InterruptedException timeout1) {
-                // well
-            }
+        try {
+            executor.shutdown();
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            logger.log(Level.SEVERE, "Interrupted while waiting for threads to finish.");
         }
 
         frame.setVisible(false);
