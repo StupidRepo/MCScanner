@@ -13,6 +13,6 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 * (potentially) more comments
 
 ## TODOs
-[ ] - Optimise IP generation and inital scanning code. (1)
+- [ ] Optimise IP generation and inital scanning code. (1)
 
 [todos]: https://github.com/StupidRepo/MCScanner/blob/main/CHANGELOG.md#todos
