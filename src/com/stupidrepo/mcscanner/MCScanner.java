@@ -26,7 +26,6 @@ public class MCScanner {
         int maxRange = 255;
         int port = 25565;
 
-        // TODO: Optimize all of this code.
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
         float version = 1.14f;
@@ -59,6 +58,7 @@ public class MCScanner {
         double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
 
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
+        ArrayList < String > ips = new ArrayList < String > ();
 
         JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
         scannedLabel.setHorizontalAlignment(0);
@@ -69,6 +69,8 @@ public class MCScanner {
 
         frame.setVisible(true);
 
+        // TODO: Optimise this code. (1)
+
         ExecutorService executor = Executors.newFixedThreadPool(threads.get());
 
         for (int i = minimumRange; i <= maxRange; ++i) {
@@ -76,24 +78,35 @@ public class MCScanner {
                 for (int k = 0; k <= 255; ++k) {
                     for (int l = 0; l <= 255; ++l) {
                         String ip = i + "." + j + "." + k + "." + l;
-                        Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
-                        threadList.add(scannerThread);
-                        executor.execute(scannerThread);
-        
-                        if (threadList.size() >= threads.get()) {
-                            for (Thread nextThread: threadList) {
-                                try {
-                                    nextThread.join();
-                                    ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + (scanned / (progressThing*256)) * 100 + "%)");
-                                } catch (InterruptedException timeout2) {
-                                    // eh
-                                }
-                            }
-                            threadList.clear();
-                        }
+                        ips.add(ip);
                     }
                 }
+            }
+        }
+
+        for (int i = 0; i < ips.size(); ++i) {
+            int randomIndex = (int)(Math.random() * ips.size());
+            String temp = ips.get(i);
+            ips.set(i, ips.get(randomIndex));
+            ips.set(randomIndex, temp);
+        }
+
+        for(String ip: ips) {
+            Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
+            threadList.add(scannerThread);
+            executor.execute(scannerThread);
+
+            if (threadList.size() >= threads.get()) {
+                for (Thread nextThread: threadList) {
+                    try {
+                        nextThread.join();
+                        ++scanned;
+                        scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + (scanned / (progressThing*256)) * 100 + "%)");
+                    } catch (InterruptedException timeout2) {
+                        // eh
+                    }
+                }
+                threadList.clear();
             }
         }
 
