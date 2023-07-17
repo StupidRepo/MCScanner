@@ -29,7 +29,7 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.15f;
+        float version = 1.16f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
@@ -65,12 +65,6 @@ public class MCScanner {
         frame.add(scannedLabel, "Center");
 
         long scanned = 0;
-        long hits = 0;
-
-        JLabel hitsLabel = new JLabel("Hits: 0/0");
-        hitsLabel.setHorizontalAlignment(0);
-
-        frame.add(hitsLabel, "South");
 
         JButton viewServersButton = new JButton("View Servers");
 
@@ -100,11 +94,6 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    if(scannerThread.didHit) {
-                                        ++hits;
-                                    }
-                                    // progressBar.setValue(scanned);
-                                    hitsLabel.setText("Hits: " + hits + "/" + scanned);
                                     scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // eh
@@ -122,7 +111,6 @@ public class MCScanner {
                 nextThreadAgain.join();
                 ++scanned;
                 // progressBar.setValue(scanned);
-                hitsLabel.setText("Hits: " + hits + "/" + scanned);
                 scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
             } catch (InterruptedException timeout1) {
                 // well
@@ -292,7 +280,7 @@ class ServerList {
                 });
             }
         });
-        
+
         TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
         table.setRowSorter(sorter);
 
