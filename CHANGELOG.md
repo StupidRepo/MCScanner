@@ -1,18 +1,16 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
 ## Added
-* `PopupHandler` - stops me from duplicating a bunch of code just for settings.
-* [TODOs][todos] to changelog.
+* GUI to show all scanned MC servers in database (with sorting, too!)
 
 ## Modified
-* Thread handling has been modified to be (potentially) faster (again) and use less lines of code.
+* Fixed everything again, but now it's slower. Need to work on a better thread system.
 
 ## Removed
-* Hits feature
-* 1 unused import
-* (potentially) more comments
+Nothing has been removed.
 
 ## TODOs
-- [ ] Optimise IP generation and inital scanning code. (1)
+- [ ] Optimise IP generation and inital scanning code. [1]
+- [ x ] ~~Add a GUI for viewing servers in a nice friendly grid.~~
 
 [todos]: https://github.com/StupidRepo/MCScanner/blob/main/CHANGELOG.md#todos

@@ -1,25 +1,26 @@
 package com.stupidrepo.mcscanner;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.io.*;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+
+import org.bson.Document;
 
 public class MCScanner {
-    public static void main(String[] var0) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
+    public static void main(String[] var0) {
         AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
         int minimumRange = 1;
@@ -28,7 +29,7 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.14f;
+        float version = 1.15f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
@@ -56,9 +57,7 @@ public class MCScanner {
         frame.setLayout(new BorderLayout());
 
         double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
-
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
-        ArrayList < String > ips = new ArrayList < String > ();
 
         JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
         scannedLabel.setHorizontalAlignment(0);
@@ -66,55 +65,68 @@ public class MCScanner {
         frame.add(scannedLabel, "Center");
 
         long scanned = 0;
+        long hits = 0;
+
+        JLabel hitsLabel = new JLabel("Hits: 0/0");
+        hitsLabel.setHorizontalAlignment(0);
+
+        frame.add(hitsLabel, "South");
+
+        JButton viewServersButton = new JButton("View Servers");
+
+        viewServersButton.addActionListener(e -> {
+            ServerList serverList = new ServerList(databaseHandler);
+            serverList.showGUI();
+        });
+
+        frame.add(viewServersButton, "North");
 
         frame.setVisible(true);
 
-        // TODO: Optimise this code. (1)
-
-        ExecutorService executor = Executors.newFixedThreadPool(threads.get());
-
+        // TODO: Make this whole thing more efficient, and less ugly. [1]
         for (int i = minimumRange; i <= maxRange; ++i) {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
                     for (int l = 0; l <= 255; ++l) {
                         String ip = i + "." + j + "." + k + "." + l;
-                        ips.add(ip);
+
+                        ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
+                        Thread scanThread = new Thread(scannerThread);
+                        threadList.add(scanThread);
+                        scanThread.start();
+
+                        if (threadList.size() >= threads.get()) {
+                            for (Thread nextThread: threadList) {
+                                try {
+                                    nextThread.join();
+                                    ++scanned;
+                                    if(scannerThread.didHit) {
+                                        ++hits;
+                                    }
+                                    // progressBar.setValue(scanned);
+                                    hitsLabel.setText("Hits: " + hits + "/" + scanned);
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
+                                } catch (InterruptedException timeout2) {
+                                    // eh
+                                }
+                            }
+                            threadList.clear();
+                        }
                     }
                 }
             }
         }
 
-        for (int i = 0; i < ips.size(); ++i) {
-            int randomIndex = (int)(Math.random() * ips.size());
-            String temp = ips.get(i);
-            ips.set(i, ips.get(randomIndex));
-            ips.set(randomIndex, temp);
-        }
-
-        for(String ip: ips) {
-            Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
-            threadList.add(scannerThread);
-            executor.execute(scannerThread);
-
-            if (threadList.size() >= threads.get()) {
-                for (Thread nextThread: threadList) {
-                    try {
-                        nextThread.join();
-                        ++scanned;
-                        scannedLabel.setText("Scanned: " + scanned + "/" + progressThing*256 + " (" + (scanned / (progressThing*256)) * 100 + "%)");
-                    } catch (InterruptedException timeout2) {
-                        // eh
-                    }
-                }
-                threadList.clear();
+        for (Thread nextThreadAgain: threadList) {
+            try {
+                nextThreadAgain.join();
+                ++scanned;
+                // progressBar.setValue(scanned);
+                hitsLabel.setText("Hits: " + hits + "/" + scanned);
+                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
+            } catch (InterruptedException timeout1) {
+                // well
             }
-        }
-
-        try {
-            executor.shutdown();
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            logger.log(Level.SEVERE, "Interrupted while waiting for threads to finish.");
         }
 
         frame.setVisible(false);
@@ -211,5 +223,82 @@ class ScannerThread implements Runnable {
         } catch (IOException var8) {
             // No response/invalid response/timeout/port accidentally left open
         }
+    }
+}
+
+class ServerList {
+    private final DatabaseHandler dbHandler;
+
+    public ServerList(DatabaseHandler dbHandler) {
+        this.dbHandler = dbHandler;
+    }
+
+    public void showGUI() {
+        JFrame frame = new JFrame("MCScanner - Servers");
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setSize(500, 500);
+        frame.setLayout(new BorderLayout());
+        
+        JTable table = new JTable();
+        table.setModel(new DefaultTableModel(
+            new Object[][] {
+            },
+            new String[] {
+                "IP", "MOTD", "Version", "Max Players"
+            }
+        ));
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(200);
+        table.getColumnModel().getColumn(2).setPreferredWidth(50);
+        table.getColumnModel().getColumn(3).setPreferredWidth(50);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        table.setFillsViewportHeight(true);
+        table.setRowHeight(20);
+        table.setRowSelectionAllowed(false);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setResizingAllowed(false);
+        
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        ArrayList < Document > documents = dbHandler.getServers();
+        for (Document document: documents) {
+            String ip = document.getString("ip");
+            String motd = document.getString("motd");
+            String version = document.getString("version");
+            int players = document.getInteger("maxPlayers");
+
+            ((DefaultTableModel) table.getModel()).addRow(new Object[] {
+                ip, motd, version, players
+            });
+        }
+
+        // refresh option
+        JButton refreshButton = new JButton("Refresh");
+
+        refreshButton.addActionListener(e -> {
+            ((DefaultTableModel) table.getModel()).setRowCount(0);
+
+            ArrayList < Document > documents1 = dbHandler.getServers();
+            for (Document document: documents1) {
+                String ip = document.getString("ip");
+                String motd = document.getString("motd");
+                String version = document.getString("version");
+                int players = document.getInteger("maxPlayers");
+
+                ((DefaultTableModel) table.getModel()).addRow(new Object[] {
+                    ip, motd, version, players
+                });
+            }
+        });
+        
+        TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
+        table.setRowSorter(sorter);
+
+        // frame.add(table, BorderLayout.CENTER);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        frame.add(refreshButton, BorderLayout.SOUTH);
+        frame.setVisible(true);
     }
 }

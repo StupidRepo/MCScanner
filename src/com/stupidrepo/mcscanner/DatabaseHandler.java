@@ -6,6 +6,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +26,19 @@ public class DatabaseHandler {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to connect to database!");
         }
+    }
+
+    public ArrayList<Document> getServers() {
+        ArrayList<Document> servers = new ArrayList<>();
+        try {
+            for (Document doc : mainCollection.find()) {
+                servers.add(doc);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get servers from database!");
+        }
+
+        return servers;
     }
 
     public void writeDetailsToDB(String ip, String version, String motd, int maxPlayers) {
