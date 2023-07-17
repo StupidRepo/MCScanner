@@ -8,3 +8,4 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 
 ## Removed
 * Hits feature
+* 1 unused import
