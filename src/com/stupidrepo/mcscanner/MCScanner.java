@@ -128,11 +128,6 @@ class ScannerThread implements Runnable {
 
     public void run() {
         try {
-            byte[] mac = NetworkInterface.getByInetAddress(InetAddress.getByName(ip)).getHardwareAddress();
-            if (mac == null) {
-                return;
-            }
-
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
 
