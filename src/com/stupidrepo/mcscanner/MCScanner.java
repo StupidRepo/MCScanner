@@ -136,9 +136,16 @@ public class MCScanner {
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
-        frame.setVisible(true);
 
         long scanned = 0;
+        long hits = 0;
+
+        JLabel hitsLabel = new JLabel("Hits: 0/0");
+        hitsLabel.setHorizontalAlignment(0);
+
+        frame.add(hitsLabel, "South");
+
+        frame.setVisible(true);
 
         // TODO: Make this whole thing more efficient, and less ugly.
         for (int i = minimumRange; i <= maxRange; ++i) {
@@ -147,7 +154,8 @@ public class MCScanner {
                     for (int l = 0; l <= 255; ++l) {
                         String ip = i + "." + j + "." + k + "." + l;
 
-                        Thread scanThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
+                        ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
+                        Thread scanThread = new Thread(scannerThread);
                         threadList.add(scanThread);
                         scanThread.start();
 
@@ -156,8 +164,12 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
+                                    if(scannerThread.didHit) {
+                                        ++hits;
+                                    }
                                     // progressBar.setValue(scanned);
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / progressThing * 256) * 100) / 100 + "%)");
+                                    hitsLabel.setText("Hits: " + hits + "/" + scanned);
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // eh
                                 }
@@ -174,6 +186,7 @@ public class MCScanner {
                 nextThreadAgain.join();
                 ++scanned;
                 // progressBar.setValue(scanned);
+                hitsLabel.setText("Hits: " + hits + "/" + scanned);
                 scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
             } catch (InterruptedException timeout1) {
                 // well
@@ -191,6 +204,8 @@ class ScannerThread implements Runnable {
     private final int port;
     private final int timeout;
     private final DatabaseHandler dbHandler;
+
+    public boolean didHit = false;
 
     public ScannerThread(String ip, int port, int timeout, DatabaseHandler dbHandler) {
         this.ip = ip;
@@ -267,6 +282,8 @@ class ScannerThread implements Runnable {
             }
 
             socket.close();
+
+            didHit = true;
         } catch (IOException var8) {
             // No response/invalid response/timeout/port accidentally left open
         }

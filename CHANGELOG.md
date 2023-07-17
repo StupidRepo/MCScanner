@@ -1,11 +1,12 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
 ## Added
-* A menu that allows for configuring the MongoDB URI.
-<img alt="MongoDB menu screen thingy" height="50%" src="images/1_12-mongomenu.png" width="50%"/>
+Nothing has been added.
 
 ## Modified
-* Fixed an IllegalStateException (`IllegalStateException: state should be: open`) stopping servers from being saved to the database.
+* Fixed the percentage going over 100%
+* Changed thread code a little bit
+* Added a "Hits" counter for successfully scanned servers
 
 ## Removed
-* Removed a few unnecessary comments and debug outputs.
+Nothing has been removed.
