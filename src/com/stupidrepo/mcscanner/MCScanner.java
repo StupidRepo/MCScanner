@@ -29,7 +29,7 @@ public class MCScanner {
         // TODO: Optimize all of this code.
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.12f;
+        float version = 1.14f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
