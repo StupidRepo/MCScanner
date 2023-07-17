@@ -11,6 +11,6 @@ Nothing has been removed.
 
 ## TODOs
 - [ ] Optimise IP generation and inital scanning code. [1]
-- [ x ] ~~Add a GUI for viewing servers in a nice friendly grid.~~
+- [x] ~~Add a GUI for viewing servers in a nice friendly grid.~~
 
 [todos]: https://github.com/StupidRepo/MCScanner/blob/main/CHANGELOG.md#todos
