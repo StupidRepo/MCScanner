@@ -3,7 +3,9 @@ package com.stupidrepo.mcscanner;
 import java.awt.BorderLayout;
 import java.awt.event.WindowEvent;
 import java.io.*;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,7 +60,7 @@ public class MCScanner {
 
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
 
-        JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
+        JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing);
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
@@ -72,8 +74,8 @@ public class MCScanner {
         for (int i = minimumRange; i <= maxRange; ++i) {
             for (int j = 0; j <= 255; ++j) {
                 for (int k = 0; k <= 255; ++k) {
-                    for (int l = 0; l <= 255; ++l) {
-                        String ip = i + "." + j + "." + k + "." + l;
+                    // for (int l = 0; l <= 255; ++l) {
+                        String ip = i + "." + j + "." + k + ".0";
         
                         Thread scannerThread = new Thread(new ScannerThread(ip, port, timeout, databaseHandler));
                         threadList.add(scannerThread);
@@ -84,14 +86,14 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing + " (" + Math.round((scanned / progressThing) * 100) / 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // eh
                                 }
                             }
                             threadList.clear();
                         }
-                    }
+                    // }
                 }
             }
         }
@@ -126,6 +128,11 @@ class ScannerThread implements Runnable {
 
     public void run() {
         try {
+            byte[] mac = NetworkInterface.getByInetAddress(InetAddress.getByName(ip)).getHardwareAddress();
+            if (mac == null) {
+                return;
+            }
+
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
 
