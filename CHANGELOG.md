@@ -5,10 +5,10 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 Nothing has been added.
 
 ## Modified
-* Fixed scanner setting `offset.mcscan` to 255.255.255.255
+* Stopping & resuming handling.
 
 ## Removed
-* Debug prints
+Nothing has been removed.
 
 ## TODOs
 - [ ] Optimise IP generation and inital scanning code.[¹][1]

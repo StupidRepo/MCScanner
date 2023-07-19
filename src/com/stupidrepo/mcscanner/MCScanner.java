@@ -23,6 +23,8 @@ public class MCScanner {
     private static int offsetJ = 0;
     private static int offsetK = 0;
     private static int offsetL = 0;
+    private static boolean stopping = false;
+
     public static void main(String[] var0) {
         AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
@@ -72,17 +74,22 @@ public class MCScanner {
         frame.addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                stopping = true;
                 logger.log(Level.INFO, "Stopping threads...");
                 for (Thread nextThread: threadList) {
-                    nextThread.interrupt();
+                    try {
+                        nextThread.join();
+                    } catch (InterruptedException timeouter) {
+                        // Timeout or something idk
+                    }
                 }
-                logger.log(Level.INFO, "Making an 'offset.mcscan'...");
+                logger.log(Level.INFO, "Making an '.resumescan'...");
                 try {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter("offset.mcscan"));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(".resumescan"));
                     writer.write(String.valueOf(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL));
                     writer.close();
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Failed to write 'offset.mcscan'!");
+                    logger.log(Level.SEVERE, "Failed to write '.resumescan'!");
                 }
                 logger.log(Level.INFO, "Exiting...");
                 System.exit(0);
@@ -105,10 +112,10 @@ public class MCScanner {
 
         frame.setVisible(true);
 
-        File offsetFile = new File("offset.mcscan");
+        File offsetFile = new File(".resumescan");
         if (offsetFile.exists()) {
             try {
-                logger.log(Level.INFO, "Found 'offset.mcscan'!");
+                logger.log(Level.INFO, "Found '.resumescan'!");
                 BufferedReader reader = new BufferedReader(new FileReader(offsetFile));
                 offsetI = Integer.parseInt(reader.readLine());
                 offsetJ = Integer.parseInt(reader.readLine());
@@ -117,7 +124,7 @@ public class MCScanner {
                 logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
                 reader.close();
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failed to read 'offset.mcscan'!");
+                logger.log(Level.SEVERE, "Failed to read '.resumescan'!");
             }
         }
 
@@ -126,26 +133,42 @@ public class MCScanner {
         int thisOffsetK = offsetK;
         int thisOffsetL = offsetL;
         for (int i = thisOffsetI; i <= maxRange; ++i) {
-            offsetI = i;
+            if(stopping) {
+                break;
+            } else {
+                offsetI = i;
+            }
             for (int j = thisOffsetJ; j <= 255; ++j) {
-                offsetJ = j;
+                if(stopping) {
+                    break;
+                } else {
+                    offsetJ = j;
+                }
                 for (int k = thisOffsetK; k <= 255; ++k) {
-                    offsetK = k;
+                    if(stopping) {
+                        break;
+                    } else {
+                        offsetK = k;
+                    }
                     for (int l = thisOffsetL; l <= 255; ++l) {
-                        offsetL = l;
-                        String ip = i + "." + j + "." + k + "." + l;
+                        if(stopping) {
+                            break;
+                        } else {
+                            offsetL = l;
+                            String ip = i + "." + j + "." + k + "." + l;
 
-                        ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
-                        Thread scanThread = new Thread(scannerThread);
-                        threadList.add(scanThread);
-                        scanThread.start();
+                            ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
+                            Thread scanThread = new Thread(scannerThread);
+                            threadList.add(scanThread);
+                            scanThread.start();
+                        }
 
                         if (threadList.size() >= threads.get()) {
                             for (Thread nextThread: threadList) {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%) (" + ip + ")");
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
                                 } catch (InterruptedException timeout2) {
                                     // Timed out or smth
                                 }
