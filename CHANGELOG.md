@@ -1,13 +1,14 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
+
 ## Added
-* Resuming function!
+Nothing has been added.
 
 ## Modified
-* ScannerThread checks if IP is in DB before even making a Socket for the IP.
+* Fixed scanner setting `offset.mcscan` to 255.255.255.255
 
 ## Removed
-Nothing has been removed.
+* Debug prints
 
 ## TODOs
 - [ ] Optimise IP generation and inital scanning code.[¹][1]

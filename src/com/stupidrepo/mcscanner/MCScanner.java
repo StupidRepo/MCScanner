@@ -133,7 +133,6 @@ public class MCScanner {
                     offsetK = k;
                     for (int l = thisOffsetL; l <= 255; ++l) {
                         offsetL = l;
-                        System.out.println(String.format("%d%d%d%d", i, j, k, l));
                         String ip = i + "." + j + "." + k + "." + l;
 
                         ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
