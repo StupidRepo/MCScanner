@@ -1,7 +1,6 @@
 package com.stupidrepo.mcscanner;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -115,7 +114,6 @@ public class MCScanner {
                 offsetJ = Integer.parseInt(reader.readLine());
                 offsetK = Integer.parseInt(reader.readLine());
                 offsetL = Integer.parseInt(reader.readLine());
-                scanned = (offsetI+offsetJ+offsetK+offsetL)-1;
                 logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
                 reader.close();
             } catch (IOException e) {
