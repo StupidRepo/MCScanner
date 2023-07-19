@@ -121,14 +121,19 @@ public class MCScanner {
             }
         }
 
-        for (int i = offsetI; i <= maxRange; ++i) {
+        int thisOffsetI = offsetI;
+        int thisOffsetJ = offsetJ;
+        int thisOffsetK = offsetK;
+        int thisOffsetL = offsetL;
+        for (int i = thisOffsetI; i <= maxRange; ++i) {
             offsetI = i;
-            for (int j = offsetJ; j <= 255; ++j) {
+            for (int j = thisOffsetJ; j <= 255; ++j) {
                 offsetJ = j;
-                for (int k = offsetK; k <= 255; ++k) {
+                for (int k = thisOffsetK; k <= 255; ++k) {
                     offsetK = k;
-                    for (int l = offsetL; l <= 255; ++l) {
+                    for (int l = thisOffsetL; l <= 255; ++l) {
                         offsetL = l;
+                        System.out.println(String.format("%d%d%d%d", i, j, k, l));
                         String ip = i + "." + j + "." + k + "." + l;
 
                         ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
