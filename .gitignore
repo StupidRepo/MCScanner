@@ -4,6 +4,9 @@
 *.txt
 gradlew
 gradlew.bat
+.resumescan
+offset.mcscan
+.mcscanner
 
 # Directories
 .gradle

@@ -83,13 +83,13 @@ public class MCScanner {
                         // Timeout or something idk
                     }
                 }
-                logger.log(Level.INFO, "Making an '.resumescan'...");
+                logger.log(Level.INFO, "Making an '.mcscanner'...");
                 try {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(".resumescan"));
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
                     writer.write(String.valueOf(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL));
                     writer.close();
                 } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Failed to write '.resumescan'!");
+                    logger.log(Level.SEVERE, "Failed to write '.mcscanner'!");
                 }
                 logger.log(Level.INFO, "Exiting...");
                 System.exit(0);
@@ -112,10 +112,10 @@ public class MCScanner {
 
         frame.setVisible(true);
 
-        File offsetFile = new File(".resumescan");
+        File offsetFile = new File(".mcscanner");
         if (offsetFile.exists()) {
             try {
-                logger.log(Level.INFO, "Found '.resumescan'!");
+                logger.log(Level.INFO, "Found '.mcscanner'!");
                 BufferedReader reader = new BufferedReader(new FileReader(offsetFile));
                 offsetI = Integer.parseInt(reader.readLine());
                 offsetJ = Integer.parseInt(reader.readLine());
@@ -124,7 +124,7 @@ public class MCScanner {
                 logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
                 reader.close();
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failed to read '.resumescan'!");
+                logger.log(Level.SEVERE, "Failed to read '.mcscanner'!");
             }
         }
 
