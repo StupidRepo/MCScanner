@@ -41,6 +41,15 @@ public class DatabaseHandler {
         return servers;
     }
 
+    public Long getServerCount() {
+        try {
+            return mainCollection.countDocuments();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to get server count from database!");
+            return null;
+        }
+    }
+
     public void writeDetailsToDB(String ip, String version, String motd, int maxPlayers) {
         try {
             mainCollection

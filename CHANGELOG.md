@@ -1,17 +1,17 @@
 # Changes
 All notable changes to this project will be documented in `CHANGELOG.md`.
 ## Added
-Nothing has been added.
+* Resuming function!
 
 ## Modified
-Nothing has been modified.
+* ScannerThread checks if IP is in DB before even making a Socket for the IP.
 
 ## Removed
-* Hits feature, again.
+Nothing has been removed.
 
 ## TODOs
 - [ ] Optimise IP generation and inital scanning code. [1]
+- [ ] Optimise code in general.
 - [ ] Seperate tool for viewing servers in DB. (code is already here (`ServerList` class), just need to make it seperate)
+- [x] ~~Make it save what IP it got to when qutting so that it can resume from that IP on next startup.~~
 - [x] ~~Add a GUI for viewing servers in a nice friendly grid.~~
-
-[todos]: https://github.com/StupidRepo/MCScanner/blob/main/CHANGELOG.md#todos

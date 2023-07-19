@@ -20,6 +20,10 @@ import javax.swing.table.TableRowSorter;
 import org.bson.Document;
 
 public class MCScanner {
+    private static int offsetI = 1;
+    private static int offsetJ = 0;
+    private static int offsetK = 0;
+    private static int offsetL = 0;
     public static void main(String[] var0) {
         AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
@@ -29,7 +33,7 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.16f;
+        float version = 1.17f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
@@ -52,7 +56,7 @@ public class MCScanner {
         logger.log(Level.INFO, "Scanning IPs...");
 
         JFrame frame = new JFrame("MCScanner v" + version);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
 
@@ -66,22 +70,67 @@ public class MCScanner {
 
         long scanned = 0;
 
-        JButton viewServersButton = new JButton("View Servers");
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                logger.log(Level.INFO, "Stopping threads...");
+                for (Thread nextThread: threadList) {
+                    nextThread.interrupt();
+                }
+                logger.log(Level.INFO, "Making an 'offset.mcscan'...");
+                try {
+                    BufferedWriter writer = new BufferedWriter(new FileWriter("offset.mcscan"));
+                    writer.write(String.valueOf(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL));
+                    writer.close();
+                } catch (IOException e) {
+                    logger.log(Level.SEVERE, "Failed to write 'offset.mcscan'!");
+                }
+                logger.log(Level.INFO, "Exiting...");
+                System.exit(0);
+            }
+        });
+
+        ServerList serverList = new ServerList(databaseHandler);
+
+        JButton viewServersButton = new JButton("Show Server List");
 
         viewServersButton.addActionListener(e -> {
-            ServerList serverList = new ServerList(databaseHandler);
-            serverList.showGUI();
+            if(serverList.toggleGUI()) {
+                viewServersButton.setText("Hide Server List");
+            } else {
+                viewServersButton.setText("Show Server List");
+            }
         });
 
         frame.add(viewServersButton, "North");
 
         frame.setVisible(true);
 
-        // TODO: Make this whole thing more efficient, and less ugly. [1]
-        for (int i = minimumRange; i <= maxRange; ++i) {
-            for (int j = 0; j <= 255; ++j) {
-                for (int k = 0; k <= 255; ++k) {
-                    for (int l = 0; l <= 255; ++l) {
+        File offsetFile = new File("offset.mcscan");
+        if (offsetFile.exists()) {
+            try {
+                logger.log(Level.INFO, "Found 'offset.mcscan'!");
+                BufferedReader reader = new BufferedReader(new FileReader(offsetFile));
+                offsetI = Integer.parseInt(reader.readLine());
+                offsetJ = Integer.parseInt(reader.readLine());
+                offsetK = Integer.parseInt(reader.readLine());
+                offsetL = Integer.parseInt(reader.readLine());
+                scanned = (offsetI+offsetJ+offsetK+offsetL)-1;
+                logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
+                reader.close();
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Failed to read 'offset.mcscan'!");
+            }
+        }
+
+        for (int i = offsetI; i <= maxRange; ++i) {
+            offsetI = i;
+            for (int j = offsetJ; j <= 255; ++j) {
+                offsetJ = j;
+                for (int k = offsetK; k <= 255; ++k) {
+                    offsetK = k;
+                    for (int l = offsetL; l <= 255; ++l) {
+                        offsetL = l;
                         String ip = i + "." + j + "." + k + "." + l;
 
                         ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
@@ -94,9 +143,9 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
+                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%) (" + ip + ")");
                                 } catch (InterruptedException timeout2) {
-                                    // eh
+                                    // Timed out or smth
                                 }
                             }
                             threadList.clear();
@@ -110,10 +159,9 @@ public class MCScanner {
             try {
                 nextThreadAgain.join();
                 ++scanned;
-                // progressBar.setValue(scanned);
                 scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
             } catch (InterruptedException timeout1) {
-                // well
+                // Timeout, again!
             }
         }
 
@@ -140,6 +188,9 @@ class ScannerThread implements Runnable {
 
     public void run() {
         try {
+            if(dbHandler.isIPInDB(ip)) {
+                return;
+            }
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
 
@@ -156,26 +207,16 @@ class ScannerThread implements Runnable {
 
             int packetId = inputStream.read();
 
-            if (packetId == -1) {
+            if (packetId == -1 || packetId != 0xFF) {
                 socket.close();
-                throw new IOException("Premature end of stream.");
-            }
-
-            if (packetId != 0xFF) {
-                socket.close();
-                throw new IOException("Invalid packet ID (" + packetId + ").");
+                throw new IOException("Invalid packet: (" + packetId + ")");
             }
 
             int length = inputStreamReader.read();
 
-            if (length == -1) {
+            if (length == -1 || length == 0) {
                 socket.close();
-                throw new IOException("Premature end of stream.");
-            }
-
-            if (length == 0) {
-                socket.close();
-                throw new IOException("Invalid string length.");
+                throw new IOException("Premature end of stream/invalid String length.");
             }
 
             char[] chars = new char[length];
@@ -185,21 +226,14 @@ class ScannerThread implements Runnable {
                 throw new IOException("Premature end of stream.");
             }
 
-            if(dbHandler.isIPInDB(ip)) {
-                socket.close();
-                return;
-            }
-
             String string = new String(chars);
 
             String[] data;
             if (string.startsWith("§")) {
-                // This is for 1.8 and above
                 data = string.split("\0");
 
                 dbHandler.writeDetailsToDB(ip, data[2], data[3], Integer.parseInt(data[5]));
             } else {
-                // This is for 1.7 and below
                 data = string.split("§");
 
                 dbHandler.writeDetailsToDB(ip, data[0], Integer.parseInt(data[2]));
@@ -216,16 +250,14 @@ class ScannerThread implements Runnable {
 
 class ServerList {
     private final DatabaseHandler dbHandler;
+    private final JFrame frame;
 
     public ServerList(DatabaseHandler dbHandler) {
         this.dbHandler = dbHandler;
-    }
-
-    public void showGUI() {
-        JFrame frame = new JFrame("MCScanner - Servers");
-        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.setSize(500, 500);
-        frame.setLayout(new BorderLayout());
+        this.frame = new JFrame("MCScanner - Servers (" + dbHandler.getServerCount() + ")");
+        this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        this.frame.setSize(500, 500);
+        this.frame.setLayout(new BorderLayout());
         
         JTable table = new JTable();
         table.setModel(new DefaultTableModel(
@@ -262,7 +294,6 @@ class ServerList {
             });
         }
 
-        // refresh option
         JButton refreshButton = new JButton("Refresh");
 
         refreshButton.addActionListener(e -> {
@@ -284,9 +315,12 @@ class ServerList {
         TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
         table.setRowSorter(sorter);
 
-        // frame.add(table, BorderLayout.CENTER);
-        frame.add(scrollPane, BorderLayout.CENTER);
-        frame.add(refreshButton, BorderLayout.SOUTH);
-        frame.setVisible(true);
+        this.frame.add(scrollPane, BorderLayout.CENTER);
+        this.frame.add(refreshButton, BorderLayout.SOUTH);
+    }
+
+    public boolean toggleGUI() {
+        this.frame.setVisible(!this.frame.isVisible());
+        return this.frame.isVisible();
     }
 }
