@@ -254,7 +254,7 @@ class ServerList {
 
     public ServerList(DatabaseHandler dbHandler) {
         this.dbHandler = dbHandler;
-        this.frame = new JFrame("MCScanner - Servers (" + dbHandler.getServerCount() + ")");
+        this.frame = new JFrame("MCScanner - Servers (" + this.dbHandler.getServerCount() + ")");
         this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         this.frame.setSize(500, 500);
         this.frame.setLayout(new BorderLayout());
@@ -282,7 +282,7 @@ class ServerList {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        ArrayList < Document > documents = dbHandler.getServers();
+        ArrayList < Document > documents = this.dbHandler.getServers();
         for (Document document: documents) {
             String ip = document.getString("ip");
             String motd = document.getString("motd");
@@ -299,7 +299,7 @@ class ServerList {
         refreshButton.addActionListener(e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
 
-            ArrayList < Document > documents1 = dbHandler.getServers();
+            ArrayList < Document > documents1 = this.dbHandler.getServers();
             for (Document document: documents1) {
                 String ip = document.getString("ip");
                 String motd = document.getString("motd");
