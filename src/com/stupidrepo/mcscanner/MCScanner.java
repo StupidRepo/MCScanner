@@ -133,25 +133,25 @@ public class MCScanner {
         int thisOffsetJ = offsetJ;
         int thisOffsetK = offsetK;
         int thisOffsetL = offsetL;
-        for (int i = minimumRange; i <= (maxRange-thisOffsetI); ++i) {
+        for (int i = thisOffsetI; i <= (maxRange-thisOffsetI); ++i) {
             if(stopping) {
                 break;
             } else {
                 offsetI = i;
             }
-            for (int j = 0; j <= (255-thisOffsetJ); ++j) {
+            for (int j = thisOffsetJ; j <= (255-thisOffsetJ); ++j) {
                 if(stopping) {
                     break;
                 } else {
                     offsetJ = j;
                 }
-                for (int k = 0; k <= (255-thisOffsetK); ++k) {
+                for (int k = thisOffsetK; k <= (255-thisOffsetK); ++k) {
                     if(stopping) {
                         break;
                     } else {
                         offsetK = k;
                     }
-                    for (int l = 0; l <= (255-thisOffsetL); ++l) {
+                    for (int l = thisOffsetL; l <= (255-thisOffsetL); ++l) {
                         String ip = "...";
                         if(stopping) {
                             break;
