@@ -5,7 +5,7 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 * Search bar to the Server List.
 * Ability to search by IP, MOTD, Version and Max Players!
 * `PlaceholderText` for easy `JTextField` placeholder text.
-* `DatabaseHandler.updateServerByIPInDB()` for updating a server in the DB by it's IP.
+* `DatabaseHandler.updateServerByIPInDB()` for updating a server in the DB by it's IP. 
 
 ## Modified
 * Disable selection and editing on the JTable/Server List.
