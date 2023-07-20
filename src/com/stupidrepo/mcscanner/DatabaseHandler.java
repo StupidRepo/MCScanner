@@ -65,17 +65,17 @@ public class DatabaseHandler {
         }
     }
 
-    public void writeDetailsToDB(String ip, String motd, int maxPlayers) {
+    public void updateServerByIPInDB(String ip, String version, String motd, int maxPlayers) {
         try {
-            mainCollection
-                    .insertOne(
-                            new Document("ip", ip)
-                                    .append("motd", motd)
-                                    .append("maxPlayers", maxPlayers)
-                    );
-            logger.log(Level.WARNING, "[LEGACY!] Added " + ip + " to database.");
+            mainCollection.updateOne(
+                    new Document("ip", ip),
+                    new Document("$set", new Document("version", version)
+                            .append("motd", motd)
+                            .append("maxPlayers", maxPlayers))
+            );
+            logger.log(Level.INFO, "Updated " + ip + " in database.");
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "[LEGACY!] Failed to add " + ip + " to database.");
+            logger.log(Level.SEVERE, "Failed to update " + ip + " in database.");
         }
     }
 

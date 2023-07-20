@@ -2,14 +2,19 @@
 All notable changes to this project will be documented in `CHANGELOG.md`.
 
 ## Added
-Nothing has been added.
+* Search bar to the Server List.
+* Ability to search by IP, MOTD, Version and Max Players!
+* `PlaceholderText` for easy `JTextField` placeholder text.
+* `DatabaseHandler.updateServerByIPInDB()` for updating a server in the DB by it's IP.
 
 ## Modified
-* `ServerList` refreshes every 10 seconds.
-* Fixed bug where when an offset got to ~252-255, it would stay there and miss out on ***a lot*** of IPs.
+* Disable selection and editing on the JTable/Server List.
 
 ## Removed
-* The thing that tells you how many IPs are left to scan. It was inaccurate and I'm pretty sure getting & drawing that number to the screen made it lag a lot.
+* The thing that tells you how many IPs are left to scan.
+  * It was inaccurate and I'm pretty sure getting & drawing that number to the screen made it lag a lot.
+* Clicking a row to copy it's IP.
+* `DatabaseHandler.writeDetailsToDB(String ip, String motd, Integer maxPlayers)` because I can just make the version number report "1.6<="
 
 ## TODOs
 - [ ] Optimise IP generation and initial scanning code.[¹][1]

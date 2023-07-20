@@ -1,8 +1,12 @@
 package com.stupidrepo.mcscanner;
 
+import org.bson.Document;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.*;
@@ -14,12 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
-
-import org.bson.Document;
+import java.util.regex.PatternSyntaxException;
 
 public class MCScanner {
     private static int offsetI = 1;
@@ -37,7 +36,7 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.19f;
+        float version = 1.20f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
@@ -134,13 +133,13 @@ public class MCScanner {
         int thisOffsetJ = offsetJ;
         int thisOffsetK = offsetK;
         int thisOffsetL = offsetL;
-        for (int i = 0; i <= (maxRange-thisOffsetI); ++i) {
+        for (int i = minimumRange; i <= (maxRange-thisOffsetI); ++i) {
             if(stopping) {
                 break;
             } else {
                 offsetI = i;
             }
-            for (int j = minimumRange; j <= (255-thisOffsetJ); ++j) {
+            for (int j = 0; j <= (255-thisOffsetJ); ++j) {
                 if(stopping) {
                     break;
                 } else {
@@ -217,9 +216,6 @@ class ScannerThread implements Runnable {
 
     public void run() {
         try {
-            if(dbHandler.isIPInDB(ip)) {
-                return;
-            }
             Socket socket = new Socket();
             socket.connect(new InetSocketAddress(this.ip, this.port), this.timeout);
 
@@ -261,11 +257,19 @@ class ScannerThread implements Runnable {
             if (string.startsWith("§")) {
                 data = string.split("\0");
 
-                dbHandler.writeDetailsToDB(ip, data[2], data[3], Integer.parseInt(data[5]));
+                if(dbHandler.isIPInDB(ip)) {
+                    dbHandler.updateServerByIPInDB(ip, data[2], data[3], Integer.parseInt(data[5]));
+                } else {
+                    dbHandler.writeDetailsToDB(ip, data[2], data[3], Integer.parseInt(data[5]));
+                }
             } else {
                 data = string.split("§");
 
-                dbHandler.writeDetailsToDB(ip, data[0], Integer.parseInt(data[2]));
+                if(dbHandler.isIPInDB(ip)) {
+                    dbHandler.updateServerByIPInDB(ip, "1.6<=", data[0], Integer.parseInt(data[2]));
+                } else {
+                    dbHandler.writeDetailsToDB(ip, "1.6<=", data[0], Integer.parseInt(data[2]));
+                }
             }
 
             socket.close();
@@ -314,6 +318,31 @@ class ServerList {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
+        JTextField searchBar = new JTextField();
+        searchBar.setHorizontalAlignment(0);
+        searchBar.setToolTipText("Search");
+        searchBar.addFocusListener(new PlaceholderText("Search", searchBar).getFocusAdapter());
+
+        JComboBox<String> searchBy = new JComboBox<String>();
+        searchBy.addItem("Sort By: IP");
+        searchBy.addItem("Sort By: MOTD");
+        searchBy.addItem("Sort By: Version");
+        searchBy.addItem("Sort By: Max Players");
+        searchBy.setSelectedIndex(2);
+
+        searchBar.addActionListener(e -> {
+            String text = searchBar.getText();
+            if(text.length() > 0) {
+                try {
+                    ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(RowFilter.regexFilter(text, searchBy.getSelectedIndex()));
+                } catch (PatternSyntaxException pse) {
+                    JOptionPane.showMessageDialog(null, "Invalid search query/regex expression!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(null);
+            }
+        });
+
         Timer timer = new Timer(10000, e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
             ArrayList < Document > documents1 = this.dbHandler.getServers();
@@ -333,24 +362,12 @@ class ServerList {
         timer.start();
         timer.getListeners(ActionListener.class)[0].actionPerformed(null);
 
-        // copy IP to clipboard when clicked
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int row = table.rowAtPoint(evt.getPoint());
-                String ip = table.getModel().getValueAt(row, 0).toString();
-                StringSelection stringSelection = new StringSelection(ip);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(stringSelection, null);
-                // make message box appear that saying "copied ip to clipboard"
-                JOptionPane.showMessageDialog(null, "Copied " + ip + " to clipboard!", "Copied!", JOptionPane.INFORMATION_MESSAGE);
-            }
-        });
-
         TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
         table.setRowSorter(sorter);
 
         this.frame.add(scrollPane, BorderLayout.CENTER);
+        this.frame.add(searchBy, BorderLayout.SOUTH);
+        this.frame.add(searchBar, BorderLayout.NORTH);
     }
 
     public boolean toggleGUI() {
