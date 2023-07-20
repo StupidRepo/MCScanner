@@ -152,11 +152,12 @@ public class MCScanner {
                         offsetK = k;
                     }
                     for (int l = 0; l <= (255-thisOffsetL); ++l) {
+                        String ip = "...";
                         if(stopping) {
                             break;
                         } else {
                             offsetL = l;
-                            String ip = i + "." + j + "." + k + "." + l;
+                            ip = i + "." + j + "." + k + "." + l;
 
                             ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
                             Thread scanThread = new Thread(scannerThread);
@@ -169,7 +170,7 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned);
+                                    scannedLabel.setText("Scanned: " + scanned + " (" + ip + ")");
                                 } catch (InterruptedException timeout2) {
                                     // Timed out or smth
                                 }
