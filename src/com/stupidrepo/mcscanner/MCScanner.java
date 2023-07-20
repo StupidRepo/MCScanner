@@ -1,6 +1,9 @@
 package com.stupidrepo.mcscanner;
 
-import java.awt.BorderLayout;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -34,7 +37,7 @@ public class MCScanner {
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.17f;
+        float version = 1.19f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
@@ -61,10 +64,9 @@ public class MCScanner {
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
 
-        double progressThing = (maxRange - minimumRange + 1) * 256 * 256;
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
 
-        JLabel scannedLabel = new JLabel("Scanned: 0/" + progressThing * 256);
+        JLabel scannedLabel = new JLabel("Scanned: 0");
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
@@ -86,7 +88,7 @@ public class MCScanner {
                 logger.log(Level.INFO, "Making an '.mcscanner'...");
                 try {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
-                    writer.write(String.valueOf(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL));
+                    writer.write(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL);
                     writer.close();
                 } catch (IOException e) {
                     logger.log(Level.SEVERE, "Failed to write '.mcscanner'!");
@@ -132,25 +134,25 @@ public class MCScanner {
         int thisOffsetJ = offsetJ;
         int thisOffsetK = offsetK;
         int thisOffsetL = offsetL;
-        for (int i = thisOffsetI; i <= maxRange; ++i) {
+        for (int i = 0; i <= (maxRange-thisOffsetI); ++i) {
             if(stopping) {
                 break;
             } else {
                 offsetI = i;
             }
-            for (int j = thisOffsetJ; j <= 255; ++j) {
+            for (int j = minimumRange; j <= (255-thisOffsetJ); ++j) {
                 if(stopping) {
                     break;
                 } else {
                     offsetJ = j;
                 }
-                for (int k = thisOffsetK; k <= 255; ++k) {
+                for (int k = 0; k <= (255-thisOffsetK); ++k) {
                     if(stopping) {
                         break;
                     } else {
                         offsetK = k;
                     }
-                    for (int l = thisOffsetL; l <= 255; ++l) {
+                    for (int l = 0; l <= (255-thisOffsetL); ++l) {
                         if(stopping) {
                             break;
                         } else {
@@ -168,7 +170,7 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256 + " (" + Math.round((scanned / (progressThing * 256)) * 100) / 100 + "%)");
+                                    scannedLabel.setText("Scanned: " + scanned);
                                 } catch (InterruptedException timeout2) {
                                     // Timed out or smth
                                 }
@@ -184,15 +186,17 @@ public class MCScanner {
             try {
                 nextThreadAgain.join();
                 ++scanned;
-                scannedLabel.setText("Scanned: " + scanned + "/" + progressThing * 256);
+                scannedLabel.setText("Scanned: " + scanned);
             } catch (InterruptedException timeout1) {
                 // Timeout, again!
             }
         }
 
-        frame.setVisible(false);
-        frame.dispatchEvent(new WindowEvent(frame, 201));
-        logger.log(Level.INFO, "Scan completed!");
+        if(!stopping) {
+            frame.setVisible(false);
+            frame.dispatchEvent(new WindowEvent(frame, 201));
+            logger.log(Level.INFO, "Scan completed!");
+        }
     }
 }
 
@@ -232,7 +236,7 @@ class ScannerThread implements Runnable {
 
             int packetId = inputStream.read();
 
-            if (packetId == -1 || packetId != 0xFF) {
+            if (packetId != 0xFF) {
                 socket.close();
                 throw new IOException("Invalid packet: (" + packetId + ")");
             }
@@ -281,7 +285,7 @@ class ServerList {
         this.dbHandler = dbHandler;
         this.frame = new JFrame("MCScanner - Servers (" + this.dbHandler.getServerCount() + ")");
         this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        this.frame.setSize(500, 500);
+        this.frame.setSize(720, 500);
         this.frame.setLayout(new BorderLayout());
         
         JTable table = new JTable();
@@ -300,6 +304,9 @@ class ServerList {
         table.setFillsViewportHeight(true);
         table.setRowHeight(20);
         table.setRowSelectionAllowed(false);
+        table.setDefaultEditor(Object.class, null);
+        table.setColumnSelectionAllowed(false);
+        table.setCellSelectionEnabled(false);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setResizingAllowed(false);
         
@@ -307,24 +314,10 @@ class ServerList {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
-        ArrayList < Document > documents = this.dbHandler.getServers();
-        for (Document document: documents) {
-            String ip = document.getString("ip");
-            String motd = document.getString("motd");
-            String version = document.getString("version");
-            int players = document.getInteger("maxPlayers");
-
-            ((DefaultTableModel) table.getModel()).addRow(new Object[] {
-                ip, motd, version, players
-            });
-        }
-
-        JButton refreshButton = new JButton("Refresh");
-
-        refreshButton.addActionListener(e -> {
+        Timer timer = new Timer(10000, e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
-
             ArrayList < Document > documents1 = this.dbHandler.getServers();
+            this.frame.setTitle("MCScanner - Servers (" + documents1.size() + ")");
             for (Document document: documents1) {
                 String ip = document.getString("ip");
                 String motd = document.getString("motd");
@@ -336,12 +329,28 @@ class ServerList {
                 });
             }
         });
+        timer.setRepeats(true);
+        timer.start();
+        timer.getListeners(ActionListener.class)[0].actionPerformed(null);
+
+        // copy IP to clipboard when clicked
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = table.rowAtPoint(evt.getPoint());
+                String ip = table.getModel().getValueAt(row, 0).toString();
+                StringSelection stringSelection = new StringSelection(ip);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(stringSelection, null);
+                // make message box appear that saying "copied ip to clipboard"
+                JOptionPane.showMessageDialog(null, "Copied " + ip + " to clipboard!", "Copied!", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
 
         TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
         table.setRowSorter(sorter);
 
         this.frame.add(scrollPane, BorderLayout.CENTER);
-        this.frame.add(refreshButton, BorderLayout.SOUTH);
     }
 
     public boolean toggleGUI() {
