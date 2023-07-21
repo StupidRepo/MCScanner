@@ -9,6 +9,7 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 
 ## Modified
 * Disable selection and editing on the JTable/Server List.
+* Scanning code YET again to fix it with resuming!
 
 ## Removed
 * The thing that tells you how many IPs are left to scan.
