@@ -5,7 +5,7 @@ All notable changes to this project will be documented in `CHANGELOG.md`.
 * A [LanguageHandler][langhand] for handling strings in different languages. If you want to add a new language, read [this][readme-lang].
 
 ## Modified
-Nothing has been modified.
+* Fixed `dropdown.SERVERLIST.*` strings saying 'Sort By' instead of 'Search By'.
 
 ## Removed
 Nothing has been removed.

@@ -13,8 +13,8 @@
 
   "button.SERVERLIST": "Toggle Server List",
 
-  "dropdown.SERVERLIST.IP": "Sort By: IP",
-  "dropdown.SERVERLIST.VERSION": "Sort By: Version",
-  "dropdown.SERVERLIST.MOTD": "Sort By: MOTD",
-  "dropdown.SERVERLIST.MAX_PLAYERS": "Sort By: Max Players"
+  "dropdown.SERVERLIST.IP": "Search By: IP",
+  "dropdown.SERVERLIST.VERSION": "Search By: Version",
+  "dropdown.SERVERLIST.MOTD": "Search By: MOTD",
+  "dropdown.SERVERLIST.MAX_PLAYERS": "Search By: Max Players"
 }
