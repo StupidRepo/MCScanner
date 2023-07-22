@@ -5,7 +5,7 @@ on:
       Version:
         description: 'Version number for release'
         required: true
-        default: '0.0'
+        default: '1.2'
 
 jobs:
   universalBuild:
