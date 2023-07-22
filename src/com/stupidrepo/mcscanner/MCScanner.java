@@ -366,7 +366,7 @@ class ServerList {
         timer.start();
         timer.getListeners(ActionListener.class)[0].actionPerformed(null);
 
-        TableRowSorter < TableModel > sorter = new TableRowSorter < > (table.getModel());
+        TableRowSorter < TableModel > sorter = new TableRowSorter<> (table.getModel());
         table.setRowSorter(sorter);
 
         this.frame.add(scrollPane, BorderLayout.CENTER);
