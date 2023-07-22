@@ -84,7 +84,7 @@ public class MCScanner {
                         // Timeout or something idk
                     }
                 }
-                logger.log(Level.INFO, "Making an '.mcscanner'...");
+                logger.log(Level.INFO, "Making an '.mcscanner' file...");
                 try {
                     BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
                     writer.write(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL);
@@ -116,17 +116,17 @@ public class MCScanner {
         File offsetFile = new File(".mcscanner");
         if (offsetFile.exists()) {
             try {
-                logger.log(Level.INFO, "Found '.mcscanner'!");
+                logger.log(Level.INFO, "Found '.mcscanner'.");
                 BufferedReader reader = new BufferedReader(new FileReader(offsetFile));
                 offsetI = Integer.parseInt(reader.readLine());
                 offsetJ = Integer.parseInt(reader.readLine());
                 offsetK = Integer.parseInt(reader.readLine());
                 offsetL = Integer.parseInt(reader.readLine());
-                logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
                 reader.close();
             } catch (IOException e) {
-                logger.log(Level.SEVERE, "Failed to read '.mcscanner'!");
+                logger.log(Level.SEVERE, "Failed to read '.mcscanner'.");
             }
+            logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
         }
 
         int thisOffsetI = offsetI;
