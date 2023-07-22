@@ -22,6 +22,13 @@ Now re-made in Java, and not Python!
 3. Build the project with `Build > Build Project`.
 4. Run the project with `Run > Run 'MCScanner [run]'`.
 
+## Contributing
+### General
+If you want to contribute to this project, you can fork this repository, make your changes, and then make a pull request!
+### Languages
+To contribute to the languages, fork the repository, analyse the `en-GB.json` file, make a new file with your language locale (see [this][lang]), translate the values (not the keys), and then make a pull request!
+Please don't use Google Translate :(
+
 ## Changelogs
 All notable changes to this project will be documented in [`CHANGELOG.md`][changes].
 
@@ -38,3 +45,5 @@ Oh, and **don't use this program for griefing**. Please.
 [changes]: https://github.com/StupidRepo/MCScanner/blob/main/CHANGELOG.md
 [latest]: https://github.com/StupidRepo/MCScanner/releases/latest/download/MCScanner.jar
 [latest-source]: https://github.com/StupidRepo/MCScanner/archive/refs/heads/main.zip
+
+[lang]: https://www.oracle.com/java/technologies/javase/jdk17-suported-locales.html

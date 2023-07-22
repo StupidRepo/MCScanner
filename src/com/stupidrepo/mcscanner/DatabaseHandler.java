@@ -17,6 +17,11 @@ public class DatabaseHandler {
 
     private final Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
+    /**
+     * Initiates a new DatabaseHandler.
+     *
+     * @param uri The URI to the MongoDB Database
+     */
     public DatabaseHandler(String uri) {
         try {
             mainMongoClient = MongoClients.create(uri);
@@ -28,6 +33,9 @@ public class DatabaseHandler {
         }
     }
 
+    /**
+     * Gets all the servers in the database.
+     */
     public ArrayList<Document> getServers() {
         ArrayList<Document> servers = new ArrayList<>();
         try {
@@ -41,6 +49,9 @@ public class DatabaseHandler {
         return servers;
     }
 
+    /**
+     * Gets the server count from the database.
+     */
     public Long getServerCount() {
         try {
             return mainCollection.countDocuments();
@@ -50,6 +61,14 @@ public class DatabaseHandler {
         }
     }
 
+    /**
+     * Writes an entry to the database.
+     *
+     * @param ip The IP of the server (<code>192.168.0.1</code>)
+     * @param version The version of the server (<code>1.20.1</code>)
+     * @param motd The MOTD of the server (<code>A Minecraft Server</code>)
+     * @param maxPlayers The max players of the server (<code>20</code>)
+     */
     public void writeDetailsToDB(String ip, String version, String motd, int maxPlayers) {
         try {
             mainCollection
@@ -65,6 +84,14 @@ public class DatabaseHandler {
         }
     }
 
+    /**
+     * Updates a server in the database.
+     *
+     * @param ip The IP of the server
+     * @param version The version of the server
+     * @param motd The MOTD of the server
+     * @param maxPlayers The max players of the server
+     */
     public void updateServerByIPInDB(String ip, String version, String motd, int maxPlayers) {
         try {
             mainCollection.updateOne(
@@ -79,6 +106,11 @@ public class DatabaseHandler {
         }
     }
 
+    /**
+     * Checks if a server is in the database.
+     *
+     * @param ip The IP of the server
+     */
     public boolean isIPInDB(String ip) {
         try {
             Document myDoc = mainCollection.find(new Document("ip", ip)).first();

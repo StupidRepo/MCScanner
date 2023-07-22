@@ -1,5 +1,6 @@
 package com.stupidrepo.mcscanner;
 
+import com.stupidrepo.mcscanner.language.LanguageHandler;
 import org.bson.Document;
 
 import javax.swing.*;
@@ -14,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -27,20 +29,23 @@ public class MCScanner {
     private static int offsetL = 0;
     private static boolean stopping = false;
 
-    public static void main(String[] var0) {
+    public static LanguageHandler lang;
+
+    public static void main(String[] args) {
         AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
-        int minimumRange = 1;
         int maxRange = 255;
         int port = 25565;
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.20f;
+        float version = 1.21f;
 
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
-        PopupHandler threadsPopup = new PopupHandler("How many threads would you like to use?", "1024", "OK");
+        lang = new LanguageHandler(Locale.forLanguageTag("en-gb"));
+
+        PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
         threadsPopup.showAndWait();
 
         try {
@@ -49,7 +54,7 @@ public class MCScanner {
             logger.log(Level.SEVERE, "Invalid thread count.");
         }
 
-        PopupHandler mongoDBURIPopup = new PopupHandler("Enter the URI to the MongoDB database:", "mongodb://localhost:27017", "Done");
+        PopupHandler mongoDBURIPopup = new PopupHandler(lang.get("question.MONGO"), "mongodb://localhost:27017", "Done");
         mongoDBURIPopup.showAndWait();
 
         uri.set(mongoDBURIPopup.responseText);
@@ -58,14 +63,14 @@ public class MCScanner {
 
         logger.log(Level.INFO, "Scanning IPs...");
 
-        JFrame frame = new JFrame("MCScanner v" + version);
+        JFrame frame = new JFrame(lang.get("text.TITLE").formatted(version));
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
 
         ArrayList < Thread > threadList = new ArrayList < Thread > ();
 
-        JLabel scannedLabel = new JLabel("Scanned: 0");
+        JLabel scannedLabel = new JLabel(lang.get("text.SCANNED").formatted(0));
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
@@ -97,16 +102,12 @@ public class MCScanner {
             }
         });
 
-        ServerList serverList = new ServerList(databaseHandler);
+        ServerList serverList = new ServerList(databaseHandler, lang);
 
-        JButton viewServersButton = new JButton("Show Server List");
+        JButton viewServersButton = new JButton(lang.get("button.SERVERLIST"));
 
         viewServersButton.addActionListener(e -> {
-            if(serverList.toggleGUI()) {
-                viewServersButton.setText("Hide Server List");
-            } else {
-                viewServersButton.setText("Show Server List");
-            }
+            serverList.toggleGUI();
         });
 
         frame.add(viewServersButton, "North");
@@ -170,7 +171,7 @@ public class MCScanner {
                                 try {
                                     nextThread.join();
                                     ++scanned;
-                                    scannedLabel.setText("Scanned: " + scanned + " (" + ip + ")");
+                                    scannedLabel.setText(lang.get("text.SCANNED").formatted(scanned));
                                 } catch (InterruptedException timeout2) {
                                     // Timed out or smth
                                 }
@@ -189,7 +190,7 @@ public class MCScanner {
             try {
                 nextThreadAgain.join();
                 ++scanned;
-                scannedLabel.setText("Scanned: " + scanned);
+                scannedLabel.setText(lang.get("text.SCANNED").formatted(scanned));
             } catch (InterruptedException timeout1) {
                 // Timeout, again!
             }
@@ -287,11 +288,13 @@ class ScannerThread implements Runnable {
 
 class ServerList {
     private final DatabaseHandler dbHandler;
+    private final LanguageHandler lang;
     private final JFrame frame;
 
-    public ServerList(DatabaseHandler dbHandler) {
+    public ServerList(DatabaseHandler dbHandler, LanguageHandler lang) {
+        this.lang = lang;
         this.dbHandler = dbHandler;
-        this.frame = new JFrame("MCScanner - Servers (" + this.dbHandler.getServerCount() + ")");
+        this.frame = new JFrame(lang.get("text.SERVERLIST.TITLE").formatted(0));
         this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         this.frame.setSize(720, 500);
         this.frame.setLayout(new BorderLayout());
@@ -301,7 +304,7 @@ class ServerList {
             new Object[][] {
             },
             new String[] {
-                "IP", "MOTD", "Version", "Max Players"
+                lang.get(this.lang.get("text.SERVERLIST.IP")), this.lang.get("text.SERVERLIST.MOTD"), this.lang.get("text.SERVERLIST.VERSION"), this.lang.get("text.SERVERLIST.MAX_PLAYERS")
             }
         ));
         table.getColumnModel().getColumn(0).setPreferredWidth(100);
@@ -328,10 +331,10 @@ class ServerList {
         searchBar.addFocusListener(new PlaceholderText("Search", searchBar).getFocusAdapter());
 
         JComboBox<String> searchBy = new JComboBox<String>();
-        searchBy.addItem("Sort By: IP");
-        searchBy.addItem("Sort By: MOTD");
-        searchBy.addItem("Sort By: Version");
-        searchBy.addItem("Sort By: Max Players");
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.IP"));
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.MOTD"));
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.VERSION"));
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.MAX_PLAYERS"));
         searchBy.setSelectedIndex(2);
 
         searchBar.addActionListener(e -> {
@@ -350,7 +353,7 @@ class ServerList {
         Timer timer = new Timer(10000, e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
             ArrayList < Document > documents1 = this.dbHandler.getServers();
-            this.frame.setTitle("MCScanner - Servers (" + documents1.size() + ")");
+            this.frame.setTitle(lang.get("text.SERVERLIST.TITLE").formatted(documents1.size()));
             for (Document document: documents1) {
                 String ip = document.getString("ip");
                 String motd = document.getString("motd");

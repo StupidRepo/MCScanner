@@ -1,0 +1,20 @@
+{
+  "text.TITLE": "MCScanner v%s",
+  "text.SCANNED": "Scanned: %s",
+
+  "text.SERVERLIST.TITLE": "MCScanner - Servers (%s)",
+  "text.SERVERLIST.IP": "IP",
+  "text.SERVERLIST.VERSION": "Version",
+  "text.SERVERLIST.MOTD": "MOTD",
+  "text.SERVERLIST.MAX_PLAYERS": "Max Players",
+
+  "question.THREADS": "How many threads would you like to use?",
+  "question.MONGO": "What's the URI to your MongoDB database?",
+
+  "button.SERVERLIST": "Toggle Server List",
+
+  "dropdown.SERVERLIST.IP": "Sort By: IP",
+  "dropdown.SERVERLIST.VERSION": "Sort By: Version",
+  "dropdown.SERVERLIST.MOTD": "Sort By: MOTD",
+  "dropdown.SERVERLIST.MAX_PLAYERS": "Sort By: Max Players"
+}

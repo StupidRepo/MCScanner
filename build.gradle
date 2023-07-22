@@ -15,8 +15,20 @@ sourceSets {
         java {
             srcDirs = ['src']
         }
+        resources {
+            srcDirs = ["src/main/resources"]
+        }
     }
 }
+
+//sourceSets {
+//    main {
+//        resources {
+//            srcDirs "src/main/resources"
+//        }
+//    }
+//}
+
 
 mainClassName = 'com.stupidrepo.mcscanner.MCScanner'
 
