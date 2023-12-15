@@ -4,10 +4,16 @@ import com.stupidrepo.mcscanner.language.LanguageHandler;
 import org.bson.Document;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.*;
@@ -31,28 +37,26 @@ public class MCScanner {
 
     public static LanguageHandler lang;
 
-    public static void main(String[] args) {
-        AtomicInteger threads = new AtomicInteger(1024);
+    public static void main(String[] args) throws InterruptedException {
+//        AtomicInteger threads = new AtomicInteger(1024);
         int timeout = 1000;
         int maxRange = 255;
         int port = 25565;
 
         Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
 
-        float version = 1.21f;
-
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
         lang = new LanguageHandler(Locale.forLanguageTag("en-gb"));
 
-        PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
-        threadsPopup.showAndWait();
+//        PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
+//        threadsPopup.showAndWait();
 
-        try {
-            threads.set(Integer.parseInt(threadsPopup.responseText));
-        } catch (NumberFormatException e) {
-            logger.log(Level.SEVERE, "Invalid thread count.");
-        }
+//        try {
+//            threads.set(Integer.parseInt(threadsPopup.responseText));
+//        } catch (NumberFormatException e) {
+//            logger.log(Level.SEVERE, "Invalid thread count.");
+//        }
 
         PopupHandler mongoDBURIPopup = new PopupHandler(lang.get("question.MONGO"), "mongodb://localhost:27017", "Done");
         mongoDBURIPopup.showAndWait();
@@ -63,7 +67,7 @@ public class MCScanner {
 
         logger.log(Level.INFO, "Scanning IPs...");
 
-        JFrame frame = new JFrame(lang.get("text.TITLE").formatted(version));
+        JFrame frame = new JFrame(lang.get("text.TITLE"));
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
@@ -162,21 +166,9 @@ public class MCScanner {
 
                             ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
                             Thread scanThread = new Thread(scannerThread);
-                            threadList.add(scanThread);
                             scanThread.start();
-                        }
 
-                        if (threadList.size() >= threads.get()) {
-                            for (Thread nextThread: threadList) {
-                                try {
-                                    nextThread.join();
-                                    ++scanned;
-                                    scannedLabel.setText(lang.get("text.SCANNED").formatted(scanned));
-                                } catch (InterruptedException timeout2) {
-                                    // Timed out or smth
-                                }
-                            }
-                            threadList.clear();
+                            scannedLabel.setText(lang.get("text.CURRIP").formatted(ip));
                         }
                     }
                     thisOffsetL = 0;
@@ -184,16 +176,6 @@ public class MCScanner {
                 thisOffsetK = 0;
             }
             thisOffsetJ = 0;
-        }
-
-        for (Thread nextThreadAgain: threadList) {
-            try {
-                nextThreadAgain.join();
-                ++scanned;
-                scannedLabel.setText(lang.get("text.SCANNED").formatted(scanned));
-            } catch (InterruptedException timeout1) {
-                // Timeout, again!
-            }
         }
 
         if(!stopping) {
@@ -314,7 +296,7 @@ class ServerList {
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.setFillsViewportHeight(true);
         table.setRowHeight(20);
-        table.setRowSelectionAllowed(false);
+        table.setRowSelectionAllowed(true);
         table.setDefaultEditor(Object.class, null);
         table.setColumnSelectionAllowed(false);
         table.setCellSelectionEnabled(false);
@@ -337,20 +319,30 @@ class ServerList {
         searchBy.addItem(lang.get("dropdown.SERVERLIST.MAX_PLAYERS"));
         searchBy.setSelectedIndex(2);
 
-        searchBar.addActionListener(e -> {
-            String text = searchBar.getText();
-            if(text.length() > 0) {
-                try {
-                    ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(RowFilter.regexFilter(text, searchBy.getSelectedIndex()));
-                } catch (PatternSyntaxException pse) {
-                    JOptionPane.showMessageDialog(null, "Invalid search query/regex expression!", "Error", JOptionPane.ERROR_MESSAGE);
+        searchBar.getDocument().addDocumentListener(new DocumentListener() {
+            private void searchy() {
+                String text = searchBar.getText();
+                if(!text.isEmpty() && searchBar.hasFocus()) {
+                    try {
+                        ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(RowFilter.regexFilter(text, searchBy.getSelectedIndex()));
+                    } catch (PatternSyntaxException pse) {
+                        JOptionPane.showMessageDialog(null, "Invalid search query/regex expression!", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(null);
                 }
-            } else {
-                ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(null);
             }
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) { searchy(); }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) { searchy(); }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) { searchy(); }
         });
 
-        Timer timer = new Timer(10000, e -> {
+        Timer timer = new Timer(3000, e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
             ArrayList < Document > documents1 = this.dbHandler.getServers();
             this.frame.setTitle(lang.get("text.SERVERLIST.TITLE").formatted(documents1.size()));
@@ -371,6 +363,19 @@ class ServerList {
 
         TableRowSorter < TableModel > sorter = new TableRowSorter<> (table.getModel());
         table.setRowSorter(sorter);
+
+        table.getSelectionModel().addListSelectionListener(event -> {
+            try {
+                if(!event.getValueIsAdjusting()) {
+                    var selIP = table.getValueAt(table.getSelectedRow(), 0).toString();
+                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(selIP), null);
+                    JOptionPane.showMessageDialog(null, "Copied IP: %s".formatted(selIP), "Copied", JOptionPane.INFORMATION_MESSAGE);
+//                    table.changeSelection(0, 0, false, false);
+                }
+            } catch (Exception e) {
+                // welp
+            }
+        });
 
         this.frame.add(scrollPane, BorderLayout.CENTER);
         this.frame.add(searchBy, BorderLayout.SOUTH);

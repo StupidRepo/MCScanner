@@ -1,6 +1,6 @@
 {
-  "text.TITLE": "MCScanner v%s",
-  "text.SCANNED": "Scanned: %s",
+  "text.TITLE": "MCScanner",
+  "text.CURRIP": "IP: %s",
 
   "text.SERVERLIST.TITLE": "MCScanner - Servers (%s)",
   "text.SERVERLIST.IP": "IP",

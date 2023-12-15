@@ -11,3 +11,4 @@ offset.mcscan
 # Directories
 .gradle
 build
+.idea

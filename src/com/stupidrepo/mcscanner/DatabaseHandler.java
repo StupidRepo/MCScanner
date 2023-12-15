@@ -4,9 +4,11 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.bson.BsonDateTime;
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,17 +51,17 @@ public class DatabaseHandler {
         return servers;
     }
 
-    /**
-     * Gets the server count from the database.
-     */
-    public Long getServerCount() {
-        try {
-            return mainCollection.countDocuments();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to get server count from database!");
-            return null;
-        }
-    }
+//    /**
+//     * Gets the server count from the database.
+//     */
+//    public Long getServerCount() {
+//        try {
+//            return mainCollection.countDocuments();
+//        } catch (Exception e) {
+//            logger.log(Level.SEVERE, "Failed to get server count from database!");
+//            return null;
+//        }
+//    }
 
     /**
      * Writes an entry to the database.
