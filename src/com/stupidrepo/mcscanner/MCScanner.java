@@ -6,9 +6,7 @@ import org.bson.Document;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
@@ -17,6 +15,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -74,7 +73,8 @@ public class MCScanner {
 
         JFrame frame = new JFrame(lang.get("text.TITLE"));
         frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        frame.setSize(300, 100);
+        frame.setSize(350, 100);
+        frame.setResizable(false);
         frame.setLayout(new BorderLayout());
 
         String currIPString = lang.get("text.CURRIP");
@@ -106,7 +106,6 @@ public class MCScanner {
                     public Void doInBackground() {
                         serverList.hideGUI();
                         viewServersButton.setEnabled(false);
-//                        statusLabel.setText(lang.get("text.QUIT").formatted(0));
 
                         logger.log(Level.INFO, "Stopping threads...");
                         executor.shutdown();
@@ -156,9 +155,13 @@ public class MCScanner {
         SwingWorker<Void, Void> worker = new SwingWorker<>() {
             @Override
             public Void doInBackground() {
+                databaseHandler.addListener((updated, row) -> {
+                    if(!updated) session.serverFound();
+                });
                 while (true) {
                     if (stopping) {
                         statusLabel.setText(lang.get("text.QUIT").formatted(executor.getQueue().size() + executor.getActiveCount()));
+                        foundLabel.setText(foundString.formatted(session.foundThisSession));
                     } else {
                         statusLabel.setText(currIPString.formatted(ip));
                         foundLabel.setText(foundString.formatted(session.foundThisSession));
@@ -224,14 +227,12 @@ class ScannerThread implements Runnable {
     private final int port;
     private final int timeout;
     private final DatabaseHandler dbHandler;
-    private final SessionManager sessionManager;
 
     public ScannerThread(String ip, int port, int timeout, DatabaseHandler dbHandler, SessionManager sessionManager) {
         this.ip = ip;
         this.port = port;
         this.timeout = timeout;
         this.dbHandler = dbHandler;
-        this.sessionManager = sessionManager;
     }
 
     public void run() {
@@ -277,24 +278,24 @@ class ScannerThread implements Runnable {
             String[] data;
             if (string.startsWith("§")) {
                 data = string.split("\0");
+                var motd = data[3].replaceAll("§[0-9a-fk-or]", "");;
 
                 if(dbHandler.isIPInDB(ip)) {
-                    dbHandler.updateServerByIPInDB(ip, data[2], data[3], Integer.parseInt(data[5]));
+                    dbHandler.updateServerByIPInDB(ip, data[2], motd, Integer.parseInt(data[4]), Integer.parseInt(data[5]));
                 } else {
-                    dbHandler.writeDetailsToDB(ip, data[2], data[3], Integer.parseInt(data[5]));
+                    dbHandler.writeDetailsToDB(ip, data[2], motd, Integer.parseInt(data[4]), Integer.parseInt(data[5]));
                 }
             } else {
                 data = string.split("§");
 
                 if(dbHandler.isIPInDB(ip)) {
-                    dbHandler.updateServerByIPInDB(ip, "1.6<=", data[0], Integer.parseInt(data[2]));
+                    dbHandler.updateServerByIPInDB(ip, "1.6<=", data[0], Integer.parseInt(data[1]), Integer.parseInt(data[2]));
                 } else {
-                    dbHandler.writeDetailsToDB(ip, "1.6<=", data[0], Integer.parseInt(data[2]));
+                    dbHandler.writeDetailsToDB(ip, "1.6<=", data[0], Integer.parseInt(data[1]), Integer.parseInt(data[2]));
                 }
             }
 
             socket.close();
-            sessionManager.serverFound();
         } catch (IOException var8) {
             // No response/invalid response/timeout/port accidentally left open
         }
@@ -305,25 +306,26 @@ class ServerList {
     private final DatabaseHandler dbHandler;
     private final JFrame frame;
 
+    private Object getDataUnlessNull(Document document, String key, Object ifNull) {
+        if(document.get(key) != null) {
+            return document.get(key);
+        } else {
+            return ifNull;
+        }
+    }
+
     public ServerList(DatabaseHandler dbHandler, LanguageHandler lang) {
+
         this.dbHandler = dbHandler;
         this.frame = new JFrame(lang.get("text.SERVERLIST.TITLE").formatted(0));
         this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        this.frame.setSize(720, 500);
+        this.frame.setSize(850, 500);
+        this.frame.setResizable(false);
         this.frame.setLayout(new BorderLayout());
         
         JTable table = new JTable();
-        table.setModel(new DefaultTableModel(
-            new Object[][] {
-            },
-            new String[] {
-                lang.get("text.SERVERLIST.IP"), lang.get("text.SERVERLIST.MOTD"), lang.get("text.SERVERLIST.VERSION"), lang.get("text.SERVERLIST.MAX_PLAYERS")
-            }
-        ));
-        table.getColumnModel().getColumn(0).setPreferredWidth(100);
-        table.getColumnModel().getColumn(1).setPreferredWidth(200);
-        table.getColumnModel().getColumn(2).setPreferredWidth(50);
-        table.getColumnModel().getColumn(3).setPreferredWidth(50);
+        table.setAutoCreateRowSorter(false);
+        table.setRowSorter(null);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         table.setFillsViewportHeight(true);
         table.setRowHeight(20);
@@ -333,6 +335,35 @@ class ServerList {
         table.setCellSelectionEnabled(false);
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setResizingAllowed(false);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value,
+                        isSelected, hasFocus, row, column);
+                // align text to center
+                setHorizontalAlignment(JLabel.CENTER);
+                setToolTipText(value.toString());
+                return c;
+            }
+        });
+
+        table.setModel(new DefaultTableModel(
+            new Object[][] {
+            },
+            new String[] {
+                lang.get("text.SERVERLIST.IP"),
+                    lang.get("text.SERVERLIST.MOTD"),
+                    lang.get("text.SERVERLIST.VERSION"),
+                    lang.get("text.SERVERLIST.PLAYERS"),
+                    lang.get("text.SERVERLIST.LAST_UPDATED")
+            }
+        ));
+        table.getColumnModel().getColumn(0).setPreferredWidth(100);
+        table.getColumnModel().getColumn(1).setPreferredWidth(250);
+        table.getColumnModel().getColumn(2).setPreferredWidth(50);
+        table.getColumnModel().getColumn(3).setPreferredWidth(150);
+        table.getColumnModel().getColumn(4).setPreferredWidth(200);
         
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -347,7 +378,8 @@ class ServerList {
         searchBy.addItem(lang.get("dropdown.SERVERLIST.IP"));
         searchBy.addItem(lang.get("dropdown.SERVERLIST.MOTD"));
         searchBy.addItem(lang.get("dropdown.SERVERLIST.VERSION"));
-        searchBy.addItem(lang.get("dropdown.SERVERLIST.MAX_PLAYERS"));
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.PLAYERS"));
+        searchBy.addItem(lang.get("dropdown.SERVERLIST.LAST_UPDATED"));
         searchBy.setSelectedIndex(2);
 
         searchBar.getDocument().addDocumentListener(new DocumentListener() {
@@ -373,25 +405,42 @@ class ServerList {
             public void changedUpdate(DocumentEvent documentEvent) { searchy(); }
         });
 
-        // TODO: Use events and SessionManager for this
-        Timer timer = new Timer(3000, e -> {
-            ((DefaultTableModel) table.getModel()).setRowCount(0);
-            ArrayList < Document > documents1 = this.dbHandler.getServers();
-            this.frame.setTitle(lang.get("text.SERVERLIST.TITLE").formatted(documents1.size()));
-            for (Document document: documents1) {
-                String ip = document.getString("ip");
-                String motd = document.getString("motd");
-                String version = document.getString("version");
-                int players = document.getInteger("maxPlayers");
+        // TODO: Use events and DatabaseHandler for this
+        ArrayList < Document > documents1 = this.dbHandler.getServers();
+        frame.setTitle(lang.get("text.SERVERLIST.TITLE").formatted(documents1.size()));
 
-                ((DefaultTableModel) table.getModel()).addRow(new Object[] {
-                    ip, motd, version, players
-                });
+        for (Document document: documents1) {
+            if (document == null || document.isEmpty() || document.get("ip") == null) {
+                continue;
+            }
+            var ip = getDataUnlessNull(document, "ip", "[error]").toString();
+            var motd = getDataUnlessNull(document, "motd", "Seems like there is a corrupted server entry!").toString();
+            var version = getDataUnlessNull(document, "version", "=/").toString();
+            var players = Integer.parseInt(getDataUnlessNull(document, "currentPlayers", -1).toString());
+            var maxPlayers = Integer.parseInt(getDataUnlessNull(document, "maxPlayers", -1).toString());
+            var lastUpdated = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(getDataUnlessNull(document, "lastUpdated", new Date(0)));
+
+            ((DefaultTableModel) table.getModel()).addRow(new Object[]{
+                    ip, motd, version, "%d/%d".formatted(players, maxPlayers), lastUpdated
+            });
+        }
+
+        dbHandler.addListener((updated, row) -> {
+            if(updated) {
+                for(int i = 0; i < table.getRowCount(); i++) {
+                    if(table.getValueAt(i, 0).equals(row[0])) {
+                        ((DefaultTableModel) table.getModel()).removeRow(i);
+                        ((DefaultTableModel) table.getModel()).insertRow(i, row);
+                        return;
+                    }
+                }
+                // if it gets here, it's a new server
+                ((DefaultTableModel) table.getModel()).addRow(row);
+            } else {
+                frame.setTitle(lang.get("text.SERVERLIST.TITLE").formatted(dbHandler.getServers().size()));
+                ((DefaultTableModel) table.getModel()).addRow(row);
             }
         });
-        timer.setRepeats(true);
-        timer.start();
-        timer.getListeners(ActionListener.class)[0].actionPerformed(null);
 
         TableRowSorter < TableModel > sorter = new TableRowSorter<> (table.getModel());
         table.setRowSorter(sorter);

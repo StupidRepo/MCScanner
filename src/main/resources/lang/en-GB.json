@@ -7,9 +7,10 @@
   "text.SERVERLIST.IP": "IP",
   "text.SERVERLIST.VERSION": "Version",
   "text.SERVERLIST.MOTD": "MOTD",
-  "text.SERVERLIST.MAX_PLAYERS": "Max Players",
+  "text.SERVERLIST.PLAYERS": "Players (at time of scan)",
+  "text.SERVERLIST.LAST_UPDATED": "Last Updated",
 
-  "text.QUIT": "Saving & Exiting (Tasks Left: %s)",
+  "text.QUIT": "Waiting for final scans to finish... (%s left)",
 
   "question.THREADS": "How many threads would you like to use?",
   "question.MONGO": "What's the URI to your MongoDB database?",
@@ -19,5 +20,6 @@
   "dropdown.SERVERLIST.IP": "Search By: IP",
   "dropdown.SERVERLIST.VERSION": "Search By: Version",
   "dropdown.SERVERLIST.MOTD": "Search By: MOTD",
-  "dropdown.SERVERLIST.MAX_PLAYERS": "Search By: Max Players"
+  "dropdown.SERVERLIST.PLAYERS": "Search By: Players",
+  "dropdown.SERVERLIST.LAST_UPDATED": "Search By: Last Updated"
 }

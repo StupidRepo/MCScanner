@@ -9,6 +9,7 @@ import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,7 +18,12 @@ public class DatabaseHandler {
     public MongoDatabase mainDatabase;
     private MongoCollection<Document> mainCollection;
 
+    public interface DatabaseListener {
+        void changed(boolean updated, Object[] row); // When a server is added or updated
+    }
+
     private final Logger logger = Logger.getLogger("com.stupidrepo.mcscanner");
+    private final List<DatabaseListener> listeners = new ArrayList<>();
 
     /**
      * Initiates a new DatabaseHandler.
@@ -33,6 +39,15 @@ public class DatabaseHandler {
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to connect to database!");
         }
+    }
+
+    /**
+     * Adds a listener to the database.
+     *
+     * @param toAdd The listener to add
+     */
+    public void addListener(DatabaseListener toAdd) {
+        listeners.add(toAdd);
     }
 
     /**
@@ -71,16 +86,23 @@ public class DatabaseHandler {
      * @param motd The MOTD of the server (<code>A Minecraft Server</code>)
      * @param maxPlayers The max players of the server (<code>20</code>)
      */
-    public void writeDetailsToDB(String ip, String version, String motd, int maxPlayers) {
+    public void writeDetailsToDB(String ip, String version, String motd, int currentPlayers, int maxPlayers) {
         try {
+            var found = new BsonDateTime(new Date().getTime());
             mainCollection
                     .insertOne(
                             new Document("ip", ip)
                                     .append("version", version)
                                     .append("motd", motd)
+                                    .append("currentPlayers", currentPlayers)
                                     .append("maxPlayers", maxPlayers)
-                                    .append("lastUpdated", new BsonDateTime(new Date().getTime()))
+                                    .append("lastUpdated", found)
                     );
+
+            for (DatabaseListener dbl : listeners) {
+                dbl.changed(false, new Object[]{ip, motd, version, "%d/%d".formatted(currentPlayers, maxPlayers), new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(found.getValue())});
+            }
+
             logger.log(Level.INFO, "Added " + ip + " to database.");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to add " + ip + " to database.");
@@ -95,16 +117,23 @@ public class DatabaseHandler {
      * @param motd The MOTD of the server
      * @param maxPlayers The max players of the server
      */
-    public void updateServerByIPInDB(String ip, String version, String motd, int maxPlayers) {
+    public void updateServerByIPInDB(String ip, String version, String motd, int currentPlayers, int maxPlayers) {
         try {
+            var found = new BsonDateTime(new Date().getTime());
             mainCollection.updateOne(
                     new Document("ip", ip),
                     new Document("$set", new Document("version", version)
                             .append("motd", motd)
+                            .append("currentPlayers", currentPlayers)
                             .append("maxPlayers", maxPlayers)
-                            .append("lastUpdated", new BsonDateTime(new Date().getTime()))
+                            .append("lastUpdated", found)
                     )
             );
+
+            for (DatabaseListener dbl : listeners) {
+                dbl.changed(true, new Object[]{ip, motd, version, "%d/%d".formatted(currentPlayers, maxPlayers), new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(found.getValue())});
+            }
+
             logger.log(Level.INFO, "Updated " + ip + " in database.");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update " + ip + " in database.");
