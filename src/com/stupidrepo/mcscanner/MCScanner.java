@@ -41,7 +41,6 @@ public class MCScanner {
 
     public static void main(String[] args) {
         AtomicInteger threads = new AtomicInteger(1024);
-        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads.get());
         int timeout = 1300;
         int maxRange = 255;
         int port = 25565;
@@ -61,6 +60,8 @@ public class MCScanner {
         } catch (NumberFormatException e) {
             logger.log(Level.SEVERE, "Invalid thread count.");
         }
+
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads.get());
 
         PopupHandler mongoDBURIPopup = new PopupHandler(lang.get("question.MONGO"), "mongodb://localhost:27017", "Done");
         mongoDBURIPopup.showAndWait();
@@ -91,9 +92,7 @@ public class MCScanner {
 
         JButton viewServersButton = new JButton(lang.get("button.SERVERLIST"));
 
-        viewServersButton.addActionListener(e -> {
-            serverList.toggleGUI();
-        });
+        viewServersButton.addActionListener(e -> serverList.toggleGUI());
 
         frame.add(viewServersButton, "North");
 
@@ -203,9 +202,6 @@ public class MCScanner {
                             ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler, session);
                             Thread scanThread = new Thread(scannerThread);
                             executor.submit(scanThread);
-
-//                            statusLabel.setText(currIPString.formatted(ip));
-//                            foundLabel.setText(foundString.formatted(session.foundThisSession));
                         }
                     }
                     thisOffsetL = 0;
@@ -347,7 +343,7 @@ class ServerList {
         searchBar.setToolTipText("Search");
         searchBar.addFocusListener(new PlaceholderText("Search", searchBar).getFocusAdapter());
 
-        JComboBox<String> searchBy = new JComboBox<String>();
+        JComboBox<String> searchBy = new JComboBox<>();
         searchBy.addItem(lang.get("dropdown.SERVERLIST.IP"));
         searchBy.addItem(lang.get("dropdown.SERVERLIST.MOTD"));
         searchBy.addItem(lang.get("dropdown.SERVERLIST.VERSION"));
@@ -377,6 +373,7 @@ class ServerList {
             public void changedUpdate(DocumentEvent documentEvent) { searchy(); }
         });
 
+        // TODO: Use events and SessionManager for this
         Timer timer = new Timer(3000, e -> {
             ((DefaultTableModel) table.getModel()).setRowCount(0);
             ArrayList < Document > documents1 = this.dbHandler.getServers();
