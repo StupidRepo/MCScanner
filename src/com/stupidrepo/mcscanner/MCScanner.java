@@ -326,7 +326,7 @@ class ServerList {
                     try {
                         ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(RowFilter.regexFilter(text, searchBy.getSelectedIndex()));
                     } catch (PatternSyntaxException pse) {
-                        JOptionPane.showMessageDialog(null, "Invalid search query/regex expression!", "Error", JOptionPane.ERROR_MESSAGE);
+//                        JOptionPane.showMessageDialog(null, "Invalid search query/regex expression!", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
                     ((TableRowSorter<TableModel>) table.getRowSorter()).setRowFilter(null);
