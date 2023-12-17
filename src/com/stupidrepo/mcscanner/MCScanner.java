@@ -6,23 +6,18 @@ import org.bson.Document;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +39,7 @@ public class MCScanner {
     public static LanguageHandler lang;
     public static SessionManager session;
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         AtomicInteger threads = new AtomicInteger(1024);
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads.get());
         int timeout = 1000;
@@ -118,9 +113,7 @@ public class MCScanner {
                         try {
                             executor.shutdown();
                             var result = executor.awaitTermination(1, TimeUnit.MINUTES);
-                        } catch (InterruptedException e) {
-                            // pass
-                        }
+                        } catch (InterruptedException ignored) {}
                         logger.log(Level.INFO, "Making an '.mcscanner' file...");
                         try {
                             BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
@@ -188,10 +181,7 @@ public class MCScanner {
                             offsetL = l;
                             ip = i + "." + j + "." + k + "." + l;
 
-                            while(executor.getQueue().size() >= (threads.get()*2)) {
-                                // wait cuz if we submit too many threads to the pool's queue,
-                                // it'll take a while to finish and people'll be dead by then!!!
-                            }
+                            while(executor.getQueue().size() >= (threads.get()*2));
                             ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler, session);
                             Thread scanThread = new Thread(scannerThread);
                             executor.submit(scanThread);
@@ -241,7 +231,8 @@ class ScannerThread implements Runnable {
             OutputStream outputStream = socket.getOutputStream();
 
             outputStream.write(new byte[] {
-                    (byte) 0xFE, (byte) 0x01
+                    (byte) 0xFE,
+                    (byte) 0x01
             });
 
             socket.setSoTimeout(this.timeout);
@@ -298,11 +289,9 @@ class ScannerThread implements Runnable {
 
 class ServerList {
     private final DatabaseHandler dbHandler;
-    private final LanguageHandler lang;
     private final JFrame frame;
 
     public ServerList(DatabaseHandler dbHandler, LanguageHandler lang) {
-        this.lang = lang;
         this.dbHandler = dbHandler;
         this.frame = new JFrame(lang.get("text.SERVERLIST.TITLE").formatted(0));
         this.frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -314,7 +303,7 @@ class ServerList {
             new Object[][] {
             },
             new String[] {
-                this.lang.get("text.SERVERLIST.IP"), this.lang.get("text.SERVERLIST.MOTD"), this.lang.get("text.SERVERLIST.VERSION"), this.lang.get("text.SERVERLIST.MAX_PLAYERS")
+                lang.get("text.SERVERLIST.IP"), lang.get("text.SERVERLIST.MOTD"), lang.get("text.SERVERLIST.VERSION"), lang.get("text.SERVERLIST.MAX_PLAYERS")
             }
         ));
         table.getColumnModel().getColumn(0).setPreferredWidth(100);
@@ -410,13 +399,11 @@ class ServerList {
         this.frame.add(searchBar, BorderLayout.NORTH);
     }
 
-    public boolean toggleGUI() {
+    public void toggleGUI() {
         this.frame.setVisible(!this.frame.isVisible());
-        return this.frame.isVisible();
     }
 
-    public boolean hideGUI() {
+    public void hideGUI() {
         this.frame.setVisible(false);
-        return this.frame.isVisible();
     }
 }
