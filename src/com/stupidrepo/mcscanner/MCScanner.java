@@ -42,7 +42,7 @@ public class MCScanner {
     public static void main(String[] args) {
         AtomicInteger threads = new AtomicInteger(1024);
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads.get());
-        int timeout = 1000;
+        int timeout = 1300;
         int maxRange = 255;
         int port = 25565;
 
@@ -102,18 +102,20 @@ public class MCScanner {
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 stopping = true;
 
-                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                SwingWorker<Void, Void> worker = new SwingWorker<>() {
                     @Override
                     public Void doInBackground() {
                         serverList.hideGUI();
                         viewServersButton.setEnabled(false);
-                        statusLabel.setText(lang.get("text.QUIT").formatted(ip));
+//                        statusLabel.setText(lang.get("text.QUIT").formatted(0));
 
                         logger.log(Level.INFO, "Stopping threads...");
+                        executor.shutdown();
                         try {
-                            executor.shutdown();
-                            var result = executor.awaitTermination(1, TimeUnit.MINUTES);
-                        } catch (InterruptedException ignored) {}
+                            executor.awaitTermination(3, TimeUnit.MINUTES);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                         logger.log(Level.INFO, "Making an '.mcscanner' file...");
                         try {
                             BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
@@ -151,6 +153,22 @@ public class MCScanner {
             logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
         }
 
+        // TODO: Better text update code? Works fine right now.
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            public Void doInBackground() {
+                while (true) {
+                    if (stopping) {
+                        statusLabel.setText(lang.get("text.QUIT").formatted(executor.getQueue().size() + executor.getActiveCount()));
+                    } else {
+                        statusLabel.setText(currIPString.formatted(ip));
+                        foundLabel.setText(foundString.formatted(session.foundThisSession));
+                    }
+                }
+            }
+        };
+        worker.execute();
+
         // TODO: Clean up this code please!
         int thisOffsetI = offsetI;
         int thisOffsetJ = offsetJ;
@@ -186,8 +204,8 @@ public class MCScanner {
                             Thread scanThread = new Thread(scannerThread);
                             executor.submit(scanThread);
 
-                            statusLabel.setText(currIPString.formatted(ip));
-                            foundLabel.setText(foundString.formatted(session.foundThisSession));
+//                            statusLabel.setText(currIPString.formatted(ip));
+//                            foundLabel.setText(foundString.formatted(session.foundThisSession));
                         }
                     }
                     thisOffsetL = 0;

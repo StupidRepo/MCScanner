@@ -22,34 +22,34 @@ public class PopupHandler {
     }
 
     public void showAndWait() {
-        JFrame threadFrame = new JFrame("MCScanner");
-        threadFrame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-        threadFrame.setSize(500, 125);
-        threadFrame.setLayout(new BorderLayout());
+        JFrame frame = new JFrame("MCScanner");
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        frame.setSize(500, 125);
+        frame.setLayout(new BorderLayout());
 
-        JLabel threadLabel = new JLabel(this.message);
-        threadLabel.setHorizontalAlignment(0);
+        JLabel messageLabel = new JLabel(this.message);
+        messageLabel.setHorizontalAlignment(0);
 
-        threadFrame.add(threadLabel, "North");
+        frame.add(messageLabel, "North");
 
-        JTextField threadField = new JTextField(this.defaultText);
-        threadField.setHorizontalAlignment(0);
+        JTextField textField = new JTextField(this.defaultText);
+        textField.setHorizontalAlignment(0);
 
-        threadFrame.add(threadField, "Center");
+        frame.add(textField, "Center");
 
         JButton threadButton = new JButton(this.buttonText);
-        threadFrame.add(threadButton, "East");
+        frame.add(threadButton, "South");
 
         threadButton.addActionListener(e -> {
-            this.responseText = threadField.getText();
-            threadFrame.setVisible(false);
-            threadFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-            threadFrame.dispatchEvent(new WindowEvent(threadFrame, 201));
+            this.responseText = textField.getText();
+            frame.setVisible(false);
+            frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            frame.dispatchEvent(new WindowEvent(frame, 201));
         });
 
-        threadFrame.setVisible(true);
+        frame.setVisible(true);
 
-        while(threadFrame.isVisible()) {
+        while(frame.isVisible()) {
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -57,6 +57,6 @@ public class PopupHandler {
             }
         }
 
-        threadFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     }
 }

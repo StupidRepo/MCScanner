@@ -9,7 +9,7 @@
   "text.SERVERLIST.MOTD": "MOTD",
   "text.SERVERLIST.MAX_PLAYERS": "Max Players",
 
-  "text.QUIT": "Saving & Exiting (Last IP: %s)",
+  "text.QUIT": "Saving & Exiting (Tasks Left: %s)",
 
   "question.THREADS": "How many threads would you like to use?",
   "question.MONGO": "What's the URI to your MongoDB database?",

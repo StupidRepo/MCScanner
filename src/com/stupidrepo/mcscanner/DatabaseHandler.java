@@ -79,6 +79,7 @@ public class DatabaseHandler {
                                     .append("version", version)
                                     .append("motd", motd)
                                     .append("maxPlayers", maxPlayers)
+                                    .append("lastUpdated", new BsonDateTime(new Date().getTime()))
                     );
             logger.log(Level.INFO, "Added " + ip + " to database.");
         } catch (Exception e) {
@@ -100,11 +101,14 @@ public class DatabaseHandler {
                     new Document("ip", ip),
                     new Document("$set", new Document("version", version)
                             .append("motd", motd)
-                            .append("maxPlayers", maxPlayers))
+                            .append("maxPlayers", maxPlayers)
+                            .append("lastUpdated", new BsonDateTime(new Date().getTime()))
+                    )
             );
             logger.log(Level.INFO, "Updated " + ip + " in database.");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to update " + ip + " in database.");
+            logger.log(Level.SEVERE, e.getMessage());
         }
     }
 
