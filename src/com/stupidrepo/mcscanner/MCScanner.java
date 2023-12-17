@@ -42,6 +42,7 @@ public class MCScanner {
     private static String ip = "...";
 
     public static LanguageHandler lang;
+    public static SessionManager session;
 
     public static void main(String[] args) throws InterruptedException {
         AtomicInteger threads = new AtomicInteger(1024);
@@ -55,6 +56,7 @@ public class MCScanner {
         AtomicReference<String> uri = new AtomicReference<>("mongodb://localhost:27017");
 
         lang = new LanguageHandler(Locale.forLanguageTag("en-gb"));
+        session = new SessionManager();
 
         PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
         threadsPopup.showAndWait();
@@ -80,10 +82,15 @@ public class MCScanner {
         frame.setLayout(new BorderLayout());
 
         String currIPString = lang.get("text.CURRIP");
-        JLabel scannedLabel = new JLabel(currIPString.formatted(0));
-        scannedLabel.setHorizontalAlignment(0);
+        JLabel statusLabel = new JLabel(currIPString.formatted(0));
+        statusLabel.setHorizontalAlignment(0);
+        frame.add(statusLabel, "Center");
 
-        frame.add(scannedLabel, "Center");
+        String foundString = lang.get("text.FOUND");
+        JLabel foundLabel = new JLabel(foundString.formatted(0));
+        foundLabel.setHorizontalAlignment(0);
+
+        frame.add(foundLabel, "South");
 
         ServerList serverList = new ServerList(databaseHandler, lang);
 
@@ -105,7 +112,7 @@ public class MCScanner {
                     public Void doInBackground() {
                         serverList.hideGUI();
                         viewServersButton.setEnabled(false);
-                        scannedLabel.setText(lang.get("text.QUIT").formatted(ip));
+                        statusLabel.setText(lang.get("text.QUIT").formatted(ip));
 
                         logger.log(Level.INFO, "Stopping threads...");
                         try {
@@ -182,13 +189,15 @@ public class MCScanner {
                             ip = i + "." + j + "." + k + "." + l;
 
                             while(executor.getQueue().size() >= (threads.get()*2)) {
-                                // wait
+                                // wait cuz if we submit too many threads to the pool's queue,
+                                // it'll take a while to finish and people'll be dead by then!!!
                             }
-                            ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
+                            ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler, session);
                             Thread scanThread = new Thread(scannerThread);
                             executor.submit(scanThread);
 
-                            scannedLabel.setText(currIPString.formatted(ip));
+                            statusLabel.setText(currIPString.formatted(ip));
+                            foundLabel.setText(foundString.formatted(session.foundThisSession));
                         }
                     }
                     thisOffsetL = 0;
@@ -199,9 +208,9 @@ public class MCScanner {
         }
 
         if(!stopping) {
-            frame.setVisible(false);
-            frame.dispatchEvent(new WindowEvent(frame, 201));
             logger.log(Level.INFO, "Scan completed!");
+            frame.dispose();
+            System.exit(0);
         }
     }
 }
@@ -211,14 +220,14 @@ class ScannerThread implements Runnable {
     private final int port;
     private final int timeout;
     private final DatabaseHandler dbHandler;
+    private final SessionManager sessionManager;
 
-    public boolean didHit = false;
-
-    public ScannerThread(String ip, int port, int timeout, DatabaseHandler dbHandler) {
+    public ScannerThread(String ip, int port, int timeout, DatabaseHandler dbHandler, SessionManager sessionManager) {
         this.ip = ip;
         this.port = port;
         this.timeout = timeout;
         this.dbHandler = dbHandler;
+        this.sessionManager = sessionManager;
     }
 
     public void run() {
@@ -280,8 +289,7 @@ class ScannerThread implements Runnable {
             }
 
             socket.close();
-
-            didHit = true;
+            sessionManager.serverFound();
         } catch (IOException var8) {
             // No response/invalid response/timeout/port accidentally left open
         }
@@ -306,7 +314,7 @@ class ServerList {
             new Object[][] {
             },
             new String[] {
-                lang.get(this.lang.get("text.SERVERLIST.IP")), this.lang.get("text.SERVERLIST.MOTD"), this.lang.get("text.SERVERLIST.VERSION"), this.lang.get("text.SERVERLIST.MAX_PLAYERS")
+                this.lang.get("text.SERVERLIST.IP"), this.lang.get("text.SERVERLIST.MOTD"), this.lang.get("text.SERVERLIST.VERSION"), this.lang.get("text.SERVERLIST.MAX_PLAYERS")
             }
         ));
         table.getColumnModel().getColumn(0).setPreferredWidth(100);

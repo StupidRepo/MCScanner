@@ -28,7 +28,7 @@ public class LanguageHandler {
             return ((BsonString) this.strings.get(key)).getValue();
         } else {
             logger.log(Level.SEVERE, "No string found for key '%s'.".formatted(key));
-            return key;
+            return "{%s}".formatted(key);
         }
     }
 

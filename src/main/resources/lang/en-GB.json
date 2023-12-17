@@ -1,6 +1,7 @@
 {
   "text.TITLE": "MCScanner",
   "text.CURRIP": "IP: %s",
+  "text.FOUND": "Servers Discovered: %s",
 
   "text.SERVERLIST.TITLE": "MCScanner - Servers (%s)",
   "text.SERVERLIST.IP": "IP",
