@@ -22,6 +22,10 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -38,7 +42,8 @@ public class MCScanner {
     public static LanguageHandler lang;
 
     public static void main(String[] args) throws InterruptedException {
-//        AtomicInteger threads = new AtomicInteger(1024);
+        AtomicInteger threads = new AtomicInteger(1024);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(threads.get());
         int timeout = 1000;
         int maxRange = 255;
         int port = 25565;
@@ -49,14 +54,14 @@ public class MCScanner {
 
         lang = new LanguageHandler(Locale.forLanguageTag("en-gb"));
 
-//        PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
-//        threadsPopup.showAndWait();
+        PopupHandler threadsPopup = new PopupHandler(lang.get("question.THREADS"), "1024", "OK");
+        threadsPopup.showAndWait();
 
-//        try {
-//            threads.set(Integer.parseInt(threadsPopup.responseText));
-//        } catch (NumberFormatException e) {
-//            logger.log(Level.SEVERE, "Invalid thread count.");
-//        }
+        try {
+            threads.set(Integer.parseInt(threadsPopup.responseText));
+        } catch (NumberFormatException e) {
+            logger.log(Level.SEVERE, "Invalid thread count.");
+        }
 
         PopupHandler mongoDBURIPopup = new PopupHandler(lang.get("question.MONGO"), "mongodb://localhost:27017", "Done");
         mongoDBURIPopup.showAndWait();
@@ -72,39 +77,10 @@ public class MCScanner {
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
 
-        ArrayList < Thread > threadList = new ArrayList < Thread > ();
-
-        JLabel scannedLabel = new JLabel(lang.get("text.SCANNED").formatted(0));
+        JLabel scannedLabel = new JLabel(lang.get("text.CURRIP").formatted(0));
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
-
-        long scanned = 0;
-
-        frame.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
-                stopping = true;
-                logger.log(Level.INFO, "Stopping threads...");
-                for (Thread nextThread: threadList) {
-                    try {
-                        nextThread.join();
-                    } catch (InterruptedException timeouter) {
-                        // Timeout or something idk
-                    }
-                }
-                logger.log(Level.INFO, "Making an '.mcscanner' file...");
-                try {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
-                    writer.write(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL);
-                    writer.close();
-                } catch (IOException e) {
-                    logger.log(Level.SEVERE, "Failed to write '.mcscanner'!");
-                }
-                logger.log(Level.INFO, "Exiting...");
-                System.exit(0);
-            }
-        });
 
         ServerList serverList = new ServerList(databaseHandler, lang);
 
@@ -115,6 +91,43 @@ public class MCScanner {
         });
 
         frame.add(viewServersButton, "North");
+
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                stopping = true;
+
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                    @Override
+                    public Void doInBackground() {
+                        serverList.hideGUI();
+                        viewServersButton.setEnabled(false);
+                        scannedLabel.setText(lang.get("text.QUIT"));
+
+                        logger.log(Level.INFO, "Stopping threads...");
+                        try {
+                            executor.shutdown();
+                            var result = executor.awaitTermination(1, TimeUnit.MINUTES);
+                        } catch (InterruptedException e) {
+                            // pass
+                        }
+                        logger.log(Level.INFO, "Making an '.mcscanner' file...");
+                        try {
+                            BufferedWriter writer = new BufferedWriter(new FileWriter(".mcscanner"));
+                            writer.write(offsetI + "\n" + offsetJ + "\n" + offsetK + "\n" + offsetL);
+                            writer.close();
+                        } catch (IOException e) {
+                            logger.log(Level.SEVERE, "Failed to write '.mcscanner'!");
+                        }
+                        logger.log(Level.INFO, "Exiting...");
+
+                        frame.dispose();
+                        return null;
+                    }
+                };
+                worker.execute();
+            }
+        });
 
         frame.setVisible(true);
 
@@ -134,6 +147,7 @@ public class MCScanner {
             logger.log(Level.INFO, "Continuing from " + offsetI + "." + offsetJ + "." + offsetK + "." + offsetL + "...");
         }
 
+        // TODO: Clean up this code please!
         int thisOffsetI = offsetI;
         int thisOffsetJ = offsetJ;
         int thisOffsetK = offsetK;
@@ -164,9 +178,12 @@ public class MCScanner {
                             offsetL = l;
                             ip = i + "." + j + "." + k + "." + l;
 
+                            while(executor.getQueue().size() >= (threads.get()*2)) {
+                                // wait
+                            }
                             ScannerThread scannerThread = new ScannerThread(ip, port, timeout, databaseHandler);
                             Thread scanThread = new Thread(scannerThread);
-                            scanThread.start();
+                            executor.submit(scanThread);
 
                             scannedLabel.setText(lang.get("text.CURRIP").formatted(ip));
                         }
@@ -384,6 +401,11 @@ class ServerList {
 
     public boolean toggleGUI() {
         this.frame.setVisible(!this.frame.isVisible());
+        return this.frame.isVisible();
+    }
+
+    public boolean hideGUI() {
+        this.frame.setVisible(false);
         return this.frame.isVisible();
     }
 }
