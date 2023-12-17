@@ -39,6 +39,8 @@ public class MCScanner {
     private static int offsetL = 0;
     private static boolean stopping = false;
 
+    private static String ip = "...";
+
     public static LanguageHandler lang;
 
     public static void main(String[] args) throws InterruptedException {
@@ -77,7 +79,8 @@ public class MCScanner {
         frame.setSize(300, 100);
         frame.setLayout(new BorderLayout());
 
-        JLabel scannedLabel = new JLabel(lang.get("text.CURRIP").formatted(0));
+        String currIPString = lang.get("text.CURRIP");
+        JLabel scannedLabel = new JLabel(currIPString.formatted(0));
         scannedLabel.setHorizontalAlignment(0);
 
         frame.add(scannedLabel, "Center");
@@ -102,7 +105,7 @@ public class MCScanner {
                     public Void doInBackground() {
                         serverList.hideGUI();
                         viewServersButton.setEnabled(false);
-                        scannedLabel.setText(lang.get("text.QUIT"));
+                        scannedLabel.setText(lang.get("text.QUIT").formatted(ip));
 
                         logger.log(Level.INFO, "Stopping threads...");
                         try {
@@ -122,6 +125,7 @@ public class MCScanner {
                         logger.log(Level.INFO, "Exiting...");
 
                         frame.dispose();
+                        System.exit(0);
                         return null;
                     }
                 };
@@ -171,7 +175,6 @@ public class MCScanner {
                         offsetK = k;
                     }
                     for (int l = thisOffsetL; l <= 255; ++l) {
-                        String ip = "...";
                         if(stopping) {
                             break;
                         } else {
@@ -185,7 +188,7 @@ public class MCScanner {
                             Thread scanThread = new Thread(scannerThread);
                             executor.submit(scanThread);
 
-                            scannedLabel.setText(lang.get("text.CURRIP").formatted(ip));
+                            scannedLabel.setText(currIPString.formatted(ip));
                         }
                     }
                     thisOffsetL = 0;
